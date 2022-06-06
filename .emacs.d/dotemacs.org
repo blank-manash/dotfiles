@@ -6,7 +6,6 @@
 This does make my emacs look pretty.
 
 #+begin_src elisp
-
   (setq inhibit-startup-message t)
   (scroll-bar-mode -1)        ; Disable visible scrollbar
   (tool-bar-mode -1)          ; Disable the toolbar
@@ -34,7 +33,7 @@ Initialize the package repository
 
   (require 'package) ; Initialize package sources
   (setq package-archives '(("melpa" . "https://melpa.org/packages/")
-                           ("elpa" . "https://elpa.gnu.org/packages/")))
+                           ("gnu" . "https://elpa.gnu.org/packages/")))
 #+end_src
 
 Using ~use-package~ as my package manager.
@@ -59,7 +58,9 @@ Using ~use-package~ as my package manager.
 The best terminal emulator
 
 #+begin_src elisp
-(use-package vterm)
+    (use-package vterm
+:defer t
+  )
 #+end_src
 
 ** Telephone-line
@@ -175,6 +176,30 @@ What do you think this is written in?
 
 /Don't ask me what this is/ 
 
+*** Org Configuration
+
+#+begin_src elisp
+  (use-package org
+    :pin gnu
+    :hook (org-mode . efs/org-mode-setup)
+    :config
+    (setq org-ellipsis " ▾" org-hide-emphasis-markers t)
+    (efs/org-font-setup)
+    (gtd-setup))
+
+  (use-package org-bullets
+    :after org
+    :hook (org-mode . org-bullets-mode))
+
+  (defun efs/org-mode-visual-fill ()
+    (setq visual-fill-column-width 120)
+    (setq visual-fill-column-center-text t)
+    (visual-fill-column-mode 1))
+
+  (use-package visual-fill-column
+    :hook (org-mode . efs/org-mode-visual-fill))
+#+end_src
+
 *** Mail
 
 Write your mails in ~org-mode~
@@ -182,7 +207,7 @@ Write your mails in ~org-mode~
 #+begin_src elisp
   (use-package org-mime
     :hook (message-send-hook . org-mime-htmlize)
-  
+    :defer t
     :config
     (setq org-mime-export-options '(:section-numbers nil :with-author nil :with-toc nil))
     (add-hook 'org-mime-html-hook
@@ -298,29 +323,6 @@ Now it's time to pull it all together
     )
 #+end_src
 
-*** Org Configuration
-
-#+begin_src elisp
-  (use-package org
-    :hook (org-mode . efs/org-mode-setup)
-    :config
-    (setq org-ellipsis " ▾" org-hide-emphasis-markers t)
-    (efs/org-font-setup)
-    (gtd-setup))
-
-  (use-package org-bullets
-    :after org
-    :hook (org-mode . org-bullets-mode))
-
-  (defun efs/org-mode-visual-fill ()
-    (setq visual-fill-column-width 120)
-    (setq visual-fill-column-center-text t)
-    (visual-fill-column-mode 1))
-
-  (use-package visual-fill-column
-    :hook (org-mode . efs/org-mode-visual-fill))
-#+end_src
-
 *** Auto Tangle Org Mode
 
 #+begin_src elisp
@@ -363,6 +365,7 @@ A note taking +management system+ *brain.*
 #+begin_src elisp
   (use-package org-roam
     :ensure t
+    :defer t
     :init
     (setq org-roam-v2-ack t)
     :custom
@@ -489,7 +492,7 @@ Oh yeah it's helpful to scroll smooth.
 (use-package swiper :ensure t)
 (use-package all-the-icons) ;; M-x all-the-icons-install-fonts # Only for first time usage.
 (use-package doom-themes
-  :init (load-theme 'doom-dracula t))
+  :init (load-theme 'doom-gruvbox t))
 #+end_src
 
 ** Which Key
@@ -498,12 +501,12 @@ Which Key was that again?
 
 #+begin_src elisp
 
-(use-package which-key
-  :init (which-key-mode)
-  :diminish which-key-mode
-  :config
-  (setq which-key-idle-delay 0.3))
-
+  (use-package which-key
+    :init (which-key-mode)
+    :defer t
+    :diminish which-key-mode
+    :config
+    (setq which-key-idle-delay 0.3))
 #+end_src
 
 Well it has a nice prompt.
