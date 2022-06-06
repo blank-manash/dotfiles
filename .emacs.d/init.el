@@ -16,7 +16,7 @@
 
 (require 'package) ; Initialize package sources
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
-                         ("elpa" . "https://elpa.gnu.org/packages/")))
+                         ("gnu" . "https://elpa.gnu.org/packages/")))
 
 (package-initialize)
 (unless package-archive-contents
@@ -29,7 +29,9 @@
 
 (setq use-package-always-ensure t)
 
-(use-package vterm)
+(use-package vterm
+:defer t
+  )
 
 (use-package telephone-line
   :config
@@ -102,9 +104,29 @@
                           '(("^ *\\([-]\\) "
                              (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•")))))))
 
+(use-package org
+  :pin gnu
+  :hook (org-mode . efs/org-mode-setup)
+  :config
+  (setq org-ellipsis " ▾" org-hide-emphasis-markers t)
+  (efs/org-font-setup)
+  (gtd-setup))
+
+(use-package org-bullets
+  :after org
+  :hook (org-mode . org-bullets-mode))
+
+(defun efs/org-mode-visual-fill ()
+  (setq visual-fill-column-width 120)
+  (setq visual-fill-column-center-text t)
+  (visual-fill-column-mode 1))
+
+(use-package visual-fill-column
+  :hook (org-mode . efs/org-mode-visual-fill))
+
 (use-package org-mime
   :hook (message-send-hook . org-mime-htmlize)
-
+  :defer t
   :config
   (setq org-mime-export-options '(:section-numbers nil :with-author nil :with-toc nil))
   (add-hook 'org-mime-html-hook
@@ -174,25 +196,6 @@
   (my-org/setup-org-todo-keywords)
   )
 
-(use-package org
-  :hook (org-mode . efs/org-mode-setup)
-  :config
-  (setq org-ellipsis " ▾" org-hide-emphasis-markers t)
-  (efs/org-font-setup)
-  (gtd-setup))
-
-(use-package org-bullets
-  :after org
-  :hook (org-mode . org-bullets-mode))
-
-(defun efs/org-mode-visual-fill ()
-  (setq visual-fill-column-width 120)
-  (setq visual-fill-column-center-text t)
-  (visual-fill-column-mode 1))
-
-(use-package visual-fill-column
-  :hook (org-mode . efs/org-mode-visual-fill))
-
 ;; Automatically tangle our Emacs.org config file when we save it
 (defun efs/org-babel-tangle-config ()
   (when (string-equal (buffer-file-name)
@@ -220,6 +223,7 @@
 
 (use-package org-roam
   :ensure t
+  :defer t
   :init
   (setq org-roam-v2-ack t)
   :custom
@@ -310,10 +314,11 @@
 (use-package swiper :ensure t)
 (use-package all-the-icons) ;; M-x all-the-icons-install-fonts # Only for first time usage.
 (use-package doom-themes
-  :init (load-theme 'doom-dracula t))
+  :init (load-theme 'doom-gruvbox t))
 
 (use-package which-key
   :init (which-key-mode)
+  :defer t
   :diminish which-key-mode
   :config
   (setq which-key-idle-delay 0.3))
@@ -454,16 +459,3 @@
 
 (use-package dired-single
   :init (dired-maps))
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   '(org evil-org flycheck writegood-mode which-key vterm vimrc-mode use-package typescript-mode telephone-line telega spray smooth-scrolling smartparens rainbow-delimiters pdf-tools org-roam org-mime org-bullets lsp-ui lsp-treemacs lsp-ivy langtool key-chord ivy-rich ivy-prescient hl-todo helpful format-all forge evil-nerd-commenter evil-collection emojify doom-themes diredfl dired-single dired-hide-dotfiles counsel-projectile company-prescient company-box bookmark-view bongo all-the-icons-dired adaptive-wrap)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
