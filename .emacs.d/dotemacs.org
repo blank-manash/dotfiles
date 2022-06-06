@@ -1,0 +1,809 @@
+#+TITLE: Manash's Emacs
+#+PROPERTY: header-args:elisp :tangle ~/.emacs.d/init.el
+
+* Basic UI Configuration
+
+This does make my emacs look pretty.
+
+#+begin_src elisp
+
+  (setq inhibit-startup-message t)
+  (scroll-bar-mode -1)        ; Disable visible scrollbar
+  (tool-bar-mode -1)          ; Disable the toolbar
+  (tooltip-mode -1)           ; Disable tooltips
+  (set-fringe-mode 10)        ; Give some breathing room
+  (menu-bar-mode -1)          ; Disable the menu bar
+  (setq visible-bell t)       ; Set up the visible bell -
+  (face-attribute 'default :font)
+  (set-face-attribute 'default nil :font "Dank Mono" :height 170)
+  (add-to-list 'default-frame-alist '(font . "Dank Mono"))
+  (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Make ESC quit prompt
+  (global-set-key (kbd "C-a") 'org-agenda)
+  (bookmark-load "~/.emacs.d/bookmarks")
+  (column-number-mode)
+  (global-display-line-numbers-mode t)
+#+end_src
+
+The Powerline of my choice
+
+* Package Configuration
+
+Initialize the package repository
+
+#+begin_src elisp
+
+  (require 'package) ; Initialize package sources
+  (setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                           ("elpa" . "https://elpa.gnu.org/packages/")))
+#+end_src
+
+Using ~use-package~ as my package manager.
+
+#+begin_src elisp
+(package-initialize)
+(unless package-archive-contents
+ (package-refresh-contents))
+
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
+(require 'use-package)
+
+(setq use-package-always-ensure t)
+#+end_src
+
+* Packages That I use
+
+** Vterm
+
+The best terminal emulator
+
+#+begin_src elisp
+(use-package vterm)
+#+end_src
+
+** Telephone-line
+
+#+begin_src elisp
+(use-package telephone-line
+  :config
+  (require 'telephone-line)
+  (telephone-line-mode 1))
+#+end_src
+
+** Evil
+
+How do you survive without Vim?
+#+begin_src elisp
+(use-package evil
+  :init ;; tweak evil's configuration before loading it
+  (setq evil-want-integration t)
+  (setq evil-want-keybinding nil)
+  (setq evil-search-module 'evil-search)
+  (setq evil-ex-complete-emacs-commands nil)
+  (setq evil-vsplit-window-right t)
+  (setq evil-split-window-below t)
+  (setq evil-shift-round nil)
+  (setq evil-want-C-u-scroll t)
+  :config ;; tweak evil after loading it
+  (evil-mode)
+)
+#+end_src
+
+Add some evil collection to it.
+
+#+begin_src elisp
+  (use-package evil-collection
+    :after evil
+    :config (evil-collection-init)
+    )
+
+  ;; inoremap jk is <Esc> "" Oops this is not vim.
+  (use-package key-chord
+    :config
+    (setq key-chord-two-keys-delay 0.5)
+    (key-chord-define evil-insert-state-map "jk" 'evil-normal-state)
+    (key-chord-mode 1)
+    (define-key emacs-lisp-mode-map (kbd "M-p") 'check-parens))
+#+end_src
+
+** Projects and Git
+
+Get Your Projects Projected with Projectile (Not sure what that means)
+
+#+begin_src elisp
+(use-package projectile
+  :diminish projectile-mode
+  :config (projectile-mode)
+  :custom ((projectile-completion-system 'ivy))
+  :bind-keymap
+  ("C-c p" . projectile-command-map)
+  :init
+  ;; NOTE: Set this to the folder where you keep your Git repos!
+  (when (file-directory-p "~/Projects")
+    (setq projectile-project-search-path '("~/Projects")))
+  (setq projectile-switch-project-action #'projectile-dired))
+
+(use-package counsel-projectile
+  :config (counsel-projectile-mode))
+#+end_src
+
+Manage a project with ~git~?
+
+#+begin_src elisp
+(use-package magit)
+(use-package forge)
+#+end_src
+
+** Telegram
+
+Let's me use Telegram in ~emacs~.
+
+#+begin_src elisp
+
+(use-package telega
+  :hook (telega-chat-mode . company-mode)
+  :bind ("C-x C-t" . telega)
+  :config
+  (setq telega-use-images '(scale rotate90))
+  (setq telega-emoji-font-family "Noto Color Emoji")
+  (setq telega-emoji-use-images "Noto Color Emoji")
+  (setq telega-online-status-function 'telega-focus-state))
+#+end_src
+
+** Org Mode
+
+What do you think this is written in?
+
+*** Font Setup
+
+#+begin_src elisp
+
+  (defun efs/org-mode-setup ()
+    (org-indent-mode)
+    (visual-line-mode 1)
+    (setq org-edit-src-content-indentation 2)
+    (setq org-src-tabs-acts-natively t))
+
+  (defun efs/org-font-setup ()
+    ;; Replace list hyphen with dot
+    (font-lock-add-keywords 'org-mode
+                            '(("^ *\\([-]\\) "
+                               (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•")))))))
+
+#+end_src
+
+/Don't ask me what this is/ 
+
+*** Mail
+
+Write your mails in ~org-mode~
+
+#+begin_src elisp
+  (use-package org-mime
+    :hook (message-send-hook . org-mime-htmlize)
+  
+    :config
+    (setq org-mime-export-options '(:section-numbers nil :with-author nil :with-toc nil))
+    (add-hook 'org-mime-html-hook
+              (lambda ()
+                (org-mime-change-element-style
+                 "pre" (format "color: %s; background-color: %s; padding: 0.5em;"
+                               "#E6E1DC" "#232323")))))
+#+end_src
+
+*** GTD Configuration
+
+This is implementation of GTD with emacs build with inspiration from this [[https://emacs.cafe/emacs/orgmode/gtd/2017/06/30/orgmode-gtd.html][blog]]. I have added some of my caveats but except that this should be the way to go.
+
+**** Todo Keywords
+These are the TODO states that will be loaded up on the agenda. The tasks before the pipe are /INCOMPLETE/ States and the rest are /COMPLETE/ states.
+
+#+begin_src elisp
+  (defun my-org/setup-org-todo-keywords ()
+    (setq org-todo-keywords '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)" "CANCELLED(c)")))
+    (setq org-todo-keyword-faces '(("TODO" . (:foreground "red" :weight bold)) ("NEXT" . (:foreground "blue" :weight bold)))))
+#+end_src
+
+We set up the capture templates.
+
+**** Capture Templates
+
+#+begin_src elisp
+  (defun my-org/setup-capture-templates ()
+    (setq org-capture-templates '(("t" "Todo [inbox]" entry
+                                   (file+headline "~/gtd/inbox.org" "Tasks")
+                                   "* TODO %i%?")
+                                  ("T" "Tickler" entry
+                                   (file+headline "~/gtd/tickler.org" "Tickler")
+                                   "* %i%? \n %U"))))
+#+end_src
+
+Then, we want to select the agenda files that we would be working on.
+
+**** Agenda Files
+
+#+begin_src elisp
+  (defun my-org/setup-agenda-files ()
+    (setq org-agenda-files '("~/gtd/inbox.org"
+                             "~/gtd/gtd.org"
+                             "~/gtd/tickler.org")))
+#+end_src
+
+These are the refile targets to move files.
+
+**** Refile Targets
+
+#+begin_src elisp
+  (defun my-org/setup-refile-targets ()
+    (setq org-refile-targets '(("~/gtd/gtd.org" :maxlevel . 3)
+                               ("~/gtd/someday.org" :level . 1)
+                               ("~/gtd/tickler.org" :maxlevel . 2))))
+#+end_src
+
+The agenda custom commands help in finding the ~NEXT~ tasks and in general task list.
+
+**** Agenda Commands
+
+#+begin_src elisp
+  (defun my-org/setup-agenda-custom-commands ()
+    (setq org-agenda-custom-commands
+          '(("o" "At the office" tags-todo "@office"
+             ((org-agenda-overriding-header "Office")
+              (org-agenda-skip-function #'my-org-agenda-skip-all-siblings-but-first)))
+
+            ("p" "Personal Projects" tags-todo "@personal"
+             ((org-agenda-overriding-header "Personal")
+              (org-agenda-skip-function #'my-org-agenda-skip-all-siblings-but-first)))
+
+            ("s" "Project Setup" tags-todo "@setup"
+             ((org-agenda-overriding-header "Project Setup")
+              (org-agenda-skip-function #'my-org-agenda-skip-all-siblings-but-first)))
+
+            ("n" "Next Tasks" ((todo "NEXT" ((org-agenda-overriding-header "Next Tasks"))))))))
+#+end_src
+
+The skipping functions help in finding the next task we are ought to do without displaying anything else.
+
+**** Skipping Functions
+
+#+begin_src elisp
+  (defun my-org-agenda-skip-all-siblings-but-first ()
+    "Skip all but the first non-done entry."
+    (let (should-skip-entry)
+      (unless (org-current-is-next)
+        (setq should-skip-entry t))
+      (save-excursion
+        (while (and (not should-skip-entry) (org-goto-sibling t))
+          (when (org-current-is-next) (setq should-skip-entry t))))
+      (when should-skip-entry
+        (or (outline-next-heading)
+            (goto-char (point-max))))))
+
+  (defun org-current-is-next ()
+    (string= "NEXT" (org-get-todo-state)))
+#+end_src
+
+Now it's time to pull it all together
+
+**** GTD Setup
+
+#+begin_src elisp
+  (defun gtd-setup ()
+    (my-org/setup-refile-targets)
+    (my-org/setup-agenda-custom-commands)
+    (my-org/setup-agenda-files)
+    (my-org/setup-capture-templates)
+    (my-org/setup-org-todo-keywords)
+    )
+#+end_src
+
+*** Org Configuration
+
+#+begin_src elisp
+  (use-package org
+    :hook (org-mode . efs/org-mode-setup)
+    :config
+    (setq org-ellipsis " ▾" org-hide-emphasis-markers t)
+    (efs/org-font-setup)
+    (gtd-setup))
+
+  (use-package org-bullets
+    :after org
+    :hook (org-mode . org-bullets-mode))
+
+  (defun efs/org-mode-visual-fill ()
+    (setq visual-fill-column-width 120)
+    (setq visual-fill-column-center-text t)
+    (visual-fill-column-mode 1))
+
+  (use-package visual-fill-column
+    :hook (org-mode . efs/org-mode-visual-fill))
+#+end_src
+
+*** Auto Tangle Org Mode
+
+#+begin_src elisp
+
+;; Automatically tangle our Emacs.org config file when we save it
+(defun efs/org-babel-tangle-config ()
+  (when (string-equal (buffer-file-name)
+                      (expand-file-name "/home/manash/.emacs.d/dotemacs.org"))
+    ;; Dynamic scoping to the rescue
+    (let ((org-confirm-babel-evaluate nil))
+      (org-babel-tangle))))
+
+(add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'efs/org-babel-tangle-config)))
+
+#+end_src
+
+*** Org Babel Configuration
+
+#+begin_src elisp
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((emacs-lisp . t)
+     (python . t)
+     (C . t)
+     ))
+  (setq org-confirm-babel-evaluate nil)
+
+      ;;; Structure Templates
+  (require 'org-tempo)
+  (add-to-list 'org-structure-template-alist '("sh" . "src bash"))
+  (add-to-list 'org-structure-template-alist '("py" . "src python"))
+  (add-to-list 'org-structure-template-alist '("el" . "src elisp"))
+  (add-to-list 'org-structure-template-alist '("vi" . "src vimrc"))
+#+end_src
+
+*** Org Roam
+
+A note taking +management system+ *brain.*
+
+#+begin_src elisp
+  (use-package org-roam
+    :ensure t
+    :init
+    (setq org-roam-v2-ack t)
+    :custom
+    (org-roam-directory "~/brain")
+    (org-roam-completion-everywhere t)
+    (org-roam-dailies-capture-templates
+     '(("d" "default" entry "* %<%I:%M %p>: %?"
+        :if-new (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n"))))
+    :bind (("C-c n l" . org-roam-buffer-toggle)
+           ("C-c n f" . org-roam-node-find)
+           ("C-c n i" . org-roam-node-insert)
+           :map org-mode-map
+           ("C-M-i" . completion-at-point)
+           :map org-roam-dailies-map
+           ("Y" . org-roam-dailies-capture-yesterday)
+           ("T" . org-roam-dailies-capture-tomorrow))
+    :bind-keymap
+    ("C-c n d" . org-roam-dailies-map)
+    :config
+    (require 'org-roam-dailies) ;; Ensure the keymap is available
+    (org-roam-db-autosync-mode))
+#+end_src
+
+** Rainbow Delimiters
+Some colorings to your brackets ~s-exp~
+
+#+begin_src elisp
+(use-package rainbow-delimiters
+  :hook (prog-mode . rainbow-delimiters-mode))
+#+end_src
+
+The hook is a function that takes a pair and executes a function based on the previous mode.
+
+** Ivy and Ivy Rich
+
+The Batman and The Ivy
+
+#+begin_src elisp
+(use-package ivy
+  :diminish
+  :bind (("C-s" . swiper)
+         :map ivy-minibuffer-map
+         ("TAB" . ivy-alt-done)	
+         ("C-l" . ivy-alt-done)
+         ("C-j" . ivy-next-line)
+         ("C-k" . ivy-previous-line)
+         :map ivy-switch-buffer-map
+         ("C-k" . ivy-previous-line)
+         ("C-l" . ivy-done)
+         ("C-d" . ivy-switch-buffer-kill)
+         :map ivy-reverse-i-search-map
+         ("C-k" . ivy-previous-line)
+         ("C-d" . ivy-reverse-i-search-kill))
+  :config
+  (ivy-mode 1))
+#+end_src
+
+Counsel Your Personal Counsellor
+
+#+begin_src elisp
+  (use-package counsel
+    :bind (("M-x" . counsel-M-x)
+           ("C-x b" . counsel-ibuffer)
+           ("C-x C-f" . counsel-find-file)
+           ([remap buffer-menu] . ibuffer)
+           :map minibuffer-local-map
+           ("C-r" . counsel-minibuffer-history))
+    :config
+    (setq ivy-initial-inputs-alist nil))
+#+end_src
+
+The Rich Documentation
+
+#+begin_src elisp
+(use-package ivy-rich
+  :init
+  (ivy-rich-mode 1))
+
+(setcdr (assq t ivy-format-functions-alist) #'ivy-format-function-line)
+#+end_src
+
+** Prescient
+
+#+begin_src elisp
+(use-package ivy-prescient
+  :after counsel
+  :config
+  (ivy-prescient-mode 1))
+  
+
+(use-package company-prescient
+  :after company
+  :config
+  (company-prescient-mode 1))
+
+;; Remember candidate frequencies across sessions
+(prescient-persist-mode 1)
+
+#+end_src
+
+** Helpful And Smooth Scrolling
+
+Oh yeah it's helpful to scroll smooth.
+
+#+begin_src elisp
+  (use-package smooth-scrolling
+    :init (smooth-scrolling-mode 1))
+
+  (use-package helpful
+    :custom
+    (counsel-describe-function-function #'helpful-callable)
+    (counsel-describe-variable-function #'helpful-variable)
+    :bind
+    ([remap describe-function] . counsel-describe-function)
+    ([remap describe-command] . helpful-command)
+    ([remap describe-variable] . counsel-describe-variable)
+    ([remap describe-key] . helpful-key)
+  )
+#+end_src
+
+** Just Swipe
+
+#+begin_src elisp
+(use-package swiper :ensure t)
+(use-package all-the-icons) ;; M-x all-the-icons-install-fonts # Only for first time usage.
+(use-package doom-themes
+  :init (load-theme 'doom-dracula t))
+#+end_src
+
+** Which Key
+
+Which Key was that again?
+
+#+begin_src elisp
+
+(use-package which-key
+  :init (which-key-mode)
+  :diminish which-key-mode
+  :config
+  (setq which-key-idle-delay 0.3))
+
+#+end_src
+
+Well it has a nice prompt.
+
+** Smart Parens?
+
+Being smart with parenthesis I believe. 
+
+#+begin_src elisp
+  (use-package smartparens
+    :hook (prog-mode . smartparens-mode)
+  )
+#+end_src
+
+** Formatting Buffers.
+
+One format function to do all of it.
+
+#+begin_src elisp
+  (use-package format-all
+    :hook (prog-mode . format-all-mode)
+    :bind (("M-f" . format-all-buffer)))
+#+end_src
+
+** Hl-todo
+
+Reformatting Todo Faces
+
+#+begin_src elisp
+  (use-package hl-todo
+    :config
+    (global-hl-todo-mode))
+#+end_src
+
+** Dired Packages
+
+Extra font lock with [[github.com/diredfl][dired-fl]].
+
+#+begin_src elisp
+  (use-package diredfl
+    :hook (dired-mode . diredfl-mode))
+#+end_src
+
+** Pdf-Tools
+
+#+begin_src elisp
+  (use-package pdf-tools
+    :mode ("\\.pdf\\'" . pdf-view-mode))
+#+end_src
+
+** Grammer Configuration
+
+Use a grammer envoker like Grammerly in emacs buffer when needed.
+
+#+begin_src elisp
+  (use-package  langtool
+    :commands (langtool-check langtool-check-done langtool-show-message-at-point langtool-correct-buffer)
+    :init (setq langtool-default-language "en-US")
+    :config
+    (setq langtool-language-tool-server-jar "/home/manash/code/LanguageTool-5.7/languagetool-server.jar")
+    (setq langtool-language-tool-jar "/home/manash/code/LanguageTool-5.7/languagetool-commandline.jar"))
+#+end_src
+
+** Mail
+
+Use Email in emacs. Find the key bindings for ~mu4e~ [[https://github.com/daviwil/emacs-from-scratch/blob/629aec3dbdffe99e2c361ffd10bd6727555a3bd3/show-notes/Emacs-Mail-01.org#managing-your-e-mail][here]].
+
+#+begin_src elisp
+  (defun my-mail-setup ()
+    ;; This is set to 't' to avoid mail syncing issues when using mbsync
+    (setq mu4e-change-filenames-when-moving t)
+
+    ;; Refresh mail using isync every 10 minutes
+    (setq mu4e-update-interval (* 10 60))
+    (setq mu4e-get-mail-command "mbsync -a")
+    (setq mu4e-maildir "~/Mail")
+
+    (setq mu4e-drafts-folder "/[Gmail]/Drafts")
+    (setq mu4e-sent-folder   "/[Gmail]/Sent Mail")
+    (setq mu4e-refile-folder "/[Gmail]/All Mail")
+    (setq mu4e-trash-folder  "/[Gmail]/Trash")
+
+
+    (setq mu4e-bookmarks
+          '(("flag:unread AND NOT flag:trashed" "Unread messages"      ?i)
+            ("date:today..now"                  "Today's messages"     ?t)
+            ("from:gamakshi@iitk.ac.in"         "Gamakshi"             ?s)
+            ("date:7d..now"                     "Last 7 days"          ?w)
+            ("mime:image/*"                     "Messages with images" ?p)))
+    (setq mu4e-maildir-shortcuts
+          '(("/Inbox"             . ?i)
+            ("/[Gmail]/Sent Mail" . ?s)
+            ("/[Gmail]/Trash"     . ?t)
+            ("/[Gmail]/Drafts"    . ?d)
+            ("/[Gmail]/All Mail"  . ?a)))
+
+    (setq message-send-mail-function 'smtpmail-send-it)
+
+    (setq mu4e-compose-signature "Manash Baul\nSoftware Engineer InMobi Ltd.\nCSE IIT Kanpur")
+    (setq user-mail-address "mximpaid@gmail.com"
+          user-full-name "Manash Baul"
+          smtpmail-smtp-server "smtp.gmail.com"
+          smtpmail-smtp-service 465
+          smtpmail-stream-type 'ssl))
+  (define-key message-mode-map
+    (kbd "C-c o") 'org-mime-edit-mail-in-org-mode)
+#+end_src
+
+
+
+#+begin_src elisp
+  (require 'mu4e)
+  (my-mail-setup)
+#+end_src
+
+** Emojify
+
+See emoji's in emacs :smile:
+
+#+begin_src elisp
+(use-package emojify
+  :hook (after-init . global-emojify-mode))
+#+end_src
+
+* Language Server Protocol
+
+LSP is the standards Software's Developers Toolkit, if you come from VS-Code / JetBrains IDE you have been using it already. But in emacs i.e (e for extensible), we have to set it up.
+
+** LSP Initialize
+
+So here is the function we define for our setup.
+
+#+begin_src elisp
+
+(defun lsp-mode-setup ()
+  (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
+  (lsp-headerline-breadcrumb-mode))
+#+end_src
+
+We will add this function to the hook. 
+
+#+begin_src elisp
+(use-package lsp-mode
+  :commands (lsp lsp-deferred)
+  :hook (lsp-mode . lsp-mode-setup)
+  :init
+  (setq lsp-keymap-prefix "C-l")  ;; Or 'C-l', 's-l'
+  :config
+  (lsp-enable-which-key-integration t))
+
+#+end_src
+
+** LSP UI
+
+Need some more rich functionality.
+
+#+begin_src elisp
+  (use-package lsp-ui
+    :hook ((lsp-mode . lsp-ui-mode) (lsp-ui-mode . lsp-diagnostics-mode))
+    :bind (:map lsp-mode-map ("K" . lsp-ui-doc-show))
+    :custom
+    (lsp-ui-doc-position 'at-point)
+    (lsp-ui-sideline-show-diagnostics t)) 
+#+end_src
+
+LSP UI adds some other helpful functionalities that can improve the work experience as we expect it to be.
+
+** LSP Treemacs and Ivy
+
+Treemacs itself is a good software, but with integration with LSP Mode can do a lot more and how we expect it to do.
+
+#+begin_src elisp
+  (use-package lsp-treemacs
+    :after lsp)
+  (use-package lsp-ivy)
+  (use-package flycheck)
+#+end_src
+
+Some helpful reference findings with Ivy as well.
+
+** Company Mode
+
+It is, having a company with LSP.
+
+#+begin_src elisp
+
+  (use-package company
+    :after lsp-mode
+    :hook (lsp-mode . company-mode)
+    :bind (:map lsp-mode-map
+                ("<tab>" . company-complete-selection)
+                ("<tab>" . company-indent-or-complete-common))
+    :custom
+    (company-minimum-prefix-length 1)
+    (company-idle-delay 0.0))
+
+  (use-package company-box
+    :hook (company-mode . company-box-mode))
+
+  (use-package evil-nerd-commenter
+    :bind ("M-/" . evilnc-comment-or-uncomment-lines)) ;; Guess what this does.
+#+end_src
+
+** Languages
+*** Typescript
+
+#+begin_src elisp
+(use-package typescript-mode
+  :mode "\\.ts\\'"
+  :hook (typescript-mode . lsp-deferred))
+#+end_src
+
+*** VimL
+
+#+begin_src elisp
+  (use-package vimrc-mode
+    :mode "\\.vim\\(rc\\)?\\'")
+#+end_src
+
+*** C / C++
+
+~CPP~ Razor Fast.
+
+#+begin_src elisp
+  (add-hook 'c++-mode-hook 'lsp-deferred)
+  (add-hook 'c-mode-hook 'lsp-deferred)
+#+end_src
+* Dired
+
+File Icons
+
+#+begin_src elisp
+(use-package all-the-icons-dired
+  :hook (dired-mode . all-the-icons-dired-mode))
+#+end_src
+
+Hide / Show dotfiles
+
+#+begin_src elisp
+  (use-package dired-hide-dotfiles
+    :hook (dired-mode . dired-hide-dotfiles-mode)
+    :config
+    (evil-collection-define-key 'normal 'dired-mode-map
+      "H" 'dired-hide-dotfiles-mode))
+#+end_src
+
+Some quick navigation and dired buffer deletation
+
+#+begin_src elisp
+
+  (defun dired-maps ()
+    (evil-collection-define-key 'normal 'dired-mode-map
+      "h" 'dired-up-directory
+      "l" 'dired-find-file))
+
+  (use-package dired-single
+    :init (dired-maps)) 
+
+#+end_src
+
+** File Operations
+
+*** Marking files
+
+- =m= - Marks a file
+- =u= - Unmarks a file
+- =U= - Unmarks all files in buffer
+- =* t= / =t= - Inverts marked files in buffer
+- =% m= - Mark files in buffer using regular expression
+- =*= - Lots of other auto-marking functions
+- =k= / =K= - "Kill" marked items (refresh buffer with =g= / =g r= to get them back)
+- Many operations can be done on a single file if there are no active marks!
+
+*** Copying and Renaming files
+
+- =C= - Copy marked files (or if no files are marked, the current file)
+- Copying single and multiple files
+- =U= - Unmark all files in buffer
+- =R= - Rename marked files, renaming multiple is a move!
+- =% R= - Rename based on regular expression: =^test= , =old-\&=
+
+*** Deleting files
+
+- =D= - Delete marked file
+- =d= - Mark file for deletion
+- =x= - Execute deletion for marks
+- =delete-by-moving-to-trash= - Move to trash instead of deleting permanently
+
+*** Creating and extracting archives
+
+- =Z= - Compress or uncompress a file or folder to (=.tar.gz=)
+- =c= - Compress selection to a specific file
+- =dired-compress-files-alist= - Bind compression commands to file extension
+
+*** Other common operations
+
+- =T= - Touch (change timestamp)
+- =M= - Change file mode
+- =O= - Change file owner
+- =G= - Change file group
+- =S= - Create a symbolic link to this file
+- =L= - Load an Emacs Lisp file into Emacs
+
