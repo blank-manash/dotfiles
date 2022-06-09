@@ -18,7 +18,6 @@ This does make my emacs look pretty.
   (add-to-list 'default-frame-alist '(font . "Dank Mono"))
   (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Make ESC quit prompt
   (global-set-key (kbd "C-a") 'org-agenda)
-  (bookmark-load "~/.emacs.d/bookmarks")
   (column-number-mode)
   (global-display-line-numbers-mode t)
 #+end_src
@@ -141,15 +140,16 @@ Manage a project with ~git~?
 Let's me use Telegram in ~emacs~.
 
 #+begin_src elisp
-
-(use-package telega
-  :hook (telega-chat-mode . company-mode)
-  :bind ("C-x C-t" . telega)
-  :config
-  (setq telega-use-images '(scale rotate90))
-  (setq telega-emoji-font-family "Noto Color Emoji")
-  (setq telega-emoji-use-images "Noto Color Emoji")
-  (setq telega-online-status-function 'telega-focus-state))
+  (use-package telega
+    :hook ((telega-chat-mode . company-mode)
+           (telega-load-hook . telega-notifications-mode)
+           (telega-load-hook . telega-mode-line-mode))
+    :bind ("C-x C-t" . telega)
+    :config
+    (setq telega-use-images '(scale rotate90))
+    (setq telega-emoji-font-family "Noto Color Emoji")
+    (setq telega-emoji-use-images "Noto Color Emoji")
+    (setq telega-online-status-function 'telega-focus-state))
 #+end_src
 
 ** Org Mode
@@ -176,36 +176,13 @@ What do you think this is written in?
 
 /Don't ask me what this is/ 
 
-*** Org Configuration
-
-#+begin_src elisp
-  (use-package org
-    :pin gnu
-    :hook (org-mode . efs/org-mode-setup)
-    :config
-    (setq org-ellipsis " ▾" org-hide-emphasis-markers t)
-    (efs/org-font-setup)
-    (gtd-setup))
-
-  (use-package org-bullets
-    :after org
-    :hook (org-mode . org-bullets-mode))
-
-  (defun efs/org-mode-visual-fill ()
-    (setq visual-fill-column-width 120)
-    (setq visual-fill-column-center-text t)
-    (visual-fill-column-mode 1))
-
-  (use-package visual-fill-column
-    :hook (org-mode . efs/org-mode-visual-fill))
-#+end_src
-
 *** Mail
 
 Write your mails in ~org-mode~
 
 #+begin_src elisp
   (use-package org-mime
+    :ensure t
     :hook (message-send-hook . org-mime-htmlize)
     :defer t
     :config
@@ -321,6 +298,31 @@ Now it's time to pull it all together
     (my-org/setup-capture-templates)
     (my-org/setup-org-todo-keywords)
     )
+#+end_src
+
+*** Org Configuration
+
+Since =Emacs 28= already has a org mode, installing that one.
+
+#+begin_src elisp
+  (use-package evil-org
+    :hook (org-mode . efs/org-mode-setup)
+    :init
+    (setq org-ellipsis " ▾" org-hide-emphasis-markers t)
+    (efs/org-font-setup)
+    (gtd-setup))
+
+  (use-package org-bullets
+    :after org
+    :hook (org-mode . org-bullets-mode))
+
+  (defun efs/org-mode-visual-fill ()
+    (setq visual-fill-column-width 120)
+    (setq visual-fill-column-center-text t)
+    (visual-fill-column-mode 1))
+
+  (use-package visual-fill-column
+    :hook (org-mode . efs/org-mode-visual-fill))
 #+end_src
 
 *** Auto Tangle Org Mode
@@ -618,8 +620,11 @@ Use Email in emacs. Find the key bindings for ~mu4e~ [[https://github.com/daviwi
 
 
 #+begin_src elisp
-  (require 'mu4e)
-  (my-mail-setup)
+  (use-package mu4e
+  :load-path "/usr/local/share/emacs/site-lisp/mu4e/"
+  :ensure nil
+  :config (my-mail-setup))
+
 #+end_src
 
 ** Emojify
@@ -629,6 +634,27 @@ See emoji's in emacs :smile:
 #+begin_src elisp
 (use-package emojify
   :hook (after-init . global-emojify-mode))
+#+end_src
+
+** Mu4e Alert
+
+Enables notification on all the mails that are incoming.
+
+#+begin_src elisp
+  (use-package mu4e-alert
+    :hook
+    ((after-init-hook . mu4e-alert-enable-notification)
+     (after-init-hook . mu4e-alert-enable-mode-line-display))
+    :config
+    (mu4e-alert-set-default-style 'libnotify))
+#+end_src
+
+** Speed Typing
+
+Have some practice while you're at =Emacs=
+
+#+begin_src elisp
+  (use-package speed-type)
 #+end_src
 
 * Language Server Protocol
