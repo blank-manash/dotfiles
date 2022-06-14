@@ -17,7 +17,9 @@ This does make my emacs look pretty.
   (set-face-attribute 'default nil :font "Dank Mono" :height 170)
   (add-to-list 'default-frame-alist '(font . "Dank Mono"))
   (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Make ESC quit prompt
-  (global-set-key (kbd "C-a") 'org-agenda)
+  (global-unset-key (kbd "C-a"))
+  (global-set-key (kbd "C-a C-a") 'org-agenda)
+  (global-set-key (kbd "C-a C-c") 'org-capture)
   (column-number-mode)
   (global-display-line-numbers-mode t)
 #+end_src
@@ -184,7 +186,6 @@ Write your mails in ~org-mode~
   (use-package org-mime
     :ensure t
     :hook (message-send-hook . org-mime-htmlize)
-    :defer t
     :config
     (setq org-mime-export-options '(:section-numbers nil :with-author nil :with-toc nil))
     (add-hook 'org-mime-html-hook
@@ -203,8 +204,9 @@ These are the TODO states that will be loaded up on the agenda. The tasks before
 
 #+begin_src elisp
   (defun my-org/setup-org-todo-keywords ()
-    (setq org-todo-keywords '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)" "CANCELLED(c)")))
-    (setq org-todo-keyword-faces '(("TODO" . (:foreground "red" :weight bold)) ("NEXT" . (:foreground "blue" :weight bold)))))
+    (setq org-todo-keywords '((sequence "TODO(t)" "NEXT(n)" "WAITING(w)" "|" "DONE(d)" "CANCELLED(c)")))
+    (setq org-todo-keyword-faces '(("TODO" . (:foreground "red" :weight bold)) ("NEXT" . (:foreground "blue" :weight bold))
+                                   ("DONE" . (:foreground "green" :weight bold)) ("WAITING" . (:foreground "yellow" :weight bold)))))
 #+end_src
 
 We set up the capture templates.
@@ -391,6 +393,22 @@ A note taking +management system+ *brain.*
     (org-roam-db-autosync-mode))
 #+end_src
 
+*** Org Latex Preview
+
+#+begin_src elisp
+  (defun krofna-hack ()
+    (when (looking-back (rx "$ "))
+      (save-excursion
+        (backward-char 1)
+        (org-toggle-latex-fragment))))
+
+  (add-hook 'org-mode-hook
+            (lambda ()
+              (org-cdlatex-mode)
+              (add-hook 'post-self-insert-hook #'krofna-hack 'append 'local)))
+
+  (setq org-format-latex-options (plist-put org-format-latex-options :scale 2.0))
+#+end_src
 ** Rainbow Delimiters
 Some colorings to your brackets ~s-exp~
 
@@ -694,8 +712,7 @@ Need some more rich functionality.
     :hook ((lsp-mode . lsp-ui-mode) (lsp-ui-mode . lsp-diagnostics-mode))
     :bind (:map lsp-mode-map ("K" . lsp-ui-doc-show))
     :custom
-    (lsp-ui-doc-position 'at-point)
-    (lsp-ui-sideline-show-diagnostics t)) 
+    (lsp-ui-doc-position 'at-point))
 #+end_src
 
 LSP UI adds some other helpful functionalities that can improve the work experience as we expect it to be.
@@ -759,6 +776,14 @@ It is, having a company with LSP.
 #+begin_src elisp
   (add-hook 'c++-mode-hook 'lsp-deferred)
   (add-hook 'c-mode-hook 'lsp-deferred)
+#+end_src
+
+*** Java
+
+#+begin_src elisp
+  (use-package lsp-java
+    :hook (java-mode . lsp-deferred)
+    :bind ("M-RET" . lsp-execute-code-action))
 #+end_src
 * Dired
 
