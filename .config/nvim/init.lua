@@ -24,7 +24,7 @@ local function settings(vim)
   vim.opt.path = vim.opt.path + { '**' }
   vim.opt.wildmenu = true
   vim.g.termwinsize = 14 * 0
-  vim.cmd('set wildmode=longest:full,full')
+  --vim.cmd('set wildmode=longest:full,full')
   vim.cmd('color moonfly')
   vim.cmd('let &guifont="Dank Mono:h12"')
   vim.cmd('autocmd BufWritePost ~/.config/nvim/init.lua source %')
@@ -32,12 +32,16 @@ end
 
 local function mappings(vim)
   vim.cmd('inoremap jk <Esc>')
-  vim.cmd('nnoremap <Leader>fi :Files<CR>')
   vim.cmd('nnoremap <Leader>nt :NvimTreeToggle<CR>')
-  vim.cmd('nnoremap <Leader>fi :Files<CR>')
-  vim.cmd('nnoremap <Leader>mr :FZFMru<CR>')
+  vim.cmd('nnoremap <Leader>ff :Telescope find_files<CR>')
+  vim.cmd('nnoremap <Leader>fb :Telescope buffers<CR>')
+  vim.cmd('nnoremap <Leader>fr :Telescope oldfiles<CR>')
+  vim.cmd('nnoremap <Leader>fh :Telescope help_tags<CR>')
+  vim.cmd('nnoremap <Leader>fc :Telescope colorscheme<CR>')
+  vim.cmd('nnoremap <Leader>fs :Telescope spell_suggest<CR>')
+  vim.cmd('nnoremap <Leader>fm :Telescope keymaps<CR>')
+  vim.cmd('nnoremap <C-s> :Telescope current_buffer_fuzzy_find<CR>')
   vim.cmd('nnoremap <F8> :Vista coc<CR>')
-  vim.cmd('nnoremap <Leader>bu :Buffers<CR>')
   vim.cmd('nnoremap <Leader>pin :PackerSync<CR>')
   vim.cmd('nnoremap <Leader>vrc :edit ~/.vimrc<CR>')
   vim.cmd('nnoremap <A-f> :Format<CR>')
@@ -67,27 +71,41 @@ require('packer').startup(function(use)
     'wbthomason/packer.nvim',
     'tpope/vim-dispatch',
     'tpope/vim-fugitive',
-    'vimwiki/vimwiki',
-    'ctrlpvim/ctrlp.vim',
+    -- 'vimwiki/vimwiki',
+    -- 'ctrlpvim/ctrlp.vim',
     'liuchengxu/vista.vim',
     'itchyny/calendar.vim',
     'dhruvasagar/vim-dotoo',
     'ryanoasis/vim-devicons',
     'markonm/traces.vim',
+    'akinsho/org-bullets.nvim',
     'alpertuna/vim-header',
-    'gpanders/vim-medieval',
+    -- 'gpanders/vim-medieval',
     'cseelus/vim-colors-lucid',
     'tpope/vim-surround',
+    'gelguy/wilder.nvim',
     'searleser97/cpbooster.vim',
     'mboughaba/i3config.vim',
-    'pbogut/fzf-mru.vim',
     'mhinz/vim-startify',
-    'junegunn/fzf.vim',
-    'junegunn/fzf',
+    -- 'pbogut/fzf-mru.vim',
+    -- 'ibhagwan/fzf-lua',
+    -- 'junegunn/fzf',
     'vifm/vifm.vim',
     'sheerun/vim-polyglot',
     'vim-test/vim-test',
     'dracula/vim',
+    'kkoomen/vim-doge',
+    'shaeinst/roshnivim-cs',
+    'nvim-orgmode/orgmode',
+    -- Telescope Plugins
+    'nvim-telescope/telescope-project.nvim',
+    'nvim-telescope/telescope-file-browser.nvim'
+  }
+  use { 'nvim-telescope/telescope-fzf-native.nvim',
+    run = 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build' }
+  use {
+    'nvim-telescope/telescope.nvim',
+    requires = { { 'nvim-lua/plenary.nvim' } }
   }
   use {
     'kyazdani42/nvim-tree.lua',
@@ -95,6 +113,10 @@ require('packer').startup(function(use)
       'kyazdani42/nvim-web-devicons', -- optional, for file icons
     },
     tag = 'nightly' -- optional, updated every week. (see issue #1193)
+  }
+  use {
+    'glacambre/firenvim',
+    run = function() vim.fn['firenvim#install'](0) end
   }
   use {
     'nvim-treesitter/nvim-treesitter',
@@ -120,14 +142,59 @@ local function treesitterSetup()
   }
 end
 
-require("bufferline").setup {
-  diagnostics = "coc"
-}
-require('lualine').setup {}
-require('nvim-tree').setup {
-  sync_root_with_cwd = true,
-  respect_buf_cwd = false,
-  view = { adaptive_size = true }
-}
+local function wilderSetup()
+  local wilder = require('wilder')
+  wilder.setup({
+    modes = { ':', '/', '?' },
+    next_key = '<C-n>',
+    previous_key = '<C-p',
+    accept_key = '<C-j>',
+    reject_key = '<C-k>'
+  })
+end
+
+local function telescopeSetup()
+  local ts = require('telescope')
+  local actions = require('telescope.actions')
+  ts.setup {
+    pickers = {
+      find_files = {
+        hidden = true
+      }
+    },
+    extensions = {
+      project = {
+        base_dirs = { '/home/manash/Projects/' }
+      }
+    },
+    mappings = {
+      n = {
+        ["q"] = actions.close
+      },
+      i = {
+        ["<C-j>"] = {
+          action = actions.move_selection_next,
+          opts = { nowait = true, silent = true }
+
+        },
+        ["<C-k>"] = {
+          action = actions.move_selection_previous,
+          opts = { nowait = true, silent = true }
+        }
+      }
+    }
+  }
+  ts.load_extension('fzf')
+  ts.load_extension('project')
+end
+
+local function setups()
+  require("bufferline").setup { diagnostics = "coc" }
+  require('lualine').setup {}
+  require('nvim-tree').setup { sync_root_with_cwd = true, respect_buf_cwd = false, view = { adaptive_size = true } }
+  telescopeSetup()
+end
 
 treesitterSetup()
+wilderSetup()
+setups()
