@@ -9,10 +9,14 @@
 (set-face-attribute 'default nil :font "Dank Mono" :height 170)
 (add-to-list 'default-frame-alist '(font . "Dank Mono"))
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ;; Make ESC quit prompt
-(global-set-key (kbd "C-a") 'org-agenda)
-(bookmark-load "~/.emacs.d/bookmarks")
+(global-unset-key (kbd "C-a"))
+(global-set-key (kbd "C-a C-a") 'org-agenda)
+(global-set-key (kbd "C-a C-c") 'org-capture)
 (column-number-mode)
 (global-display-line-numbers-mode t)
+
+(setq initial-major-mode 'org-mode)
+(setq initial-scratch-message "*")
 
 (require 'package) ; Initialize package sources
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
@@ -84,7 +88,9 @@
 (use-package forge)
 
 (use-package telega
-  :hook (telega-chat-mode . company-mode)
+  :hook ((telega-chat-mode . company-mode)
+         (telega-load-hook . telega-notifications-mode)
+         (telega-load-hook . telega-mode-line-mode))
   :bind ("C-x C-t" . telega)
   :config
   (setq telega-use-images '(scale rotate90))
@@ -104,29 +110,9 @@
                           '(("^ *\\([-]\\) "
                              (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•")))))))
 
-(use-package org
-  :pin gnu
-  :hook (org-mode . efs/org-mode-setup)
-  :config
-  (setq org-ellipsis " ▾" org-hide-emphasis-markers t)
-  (efs/org-font-setup)
-  (gtd-setup))
-
-(use-package org-bullets
-  :after org
-  :hook (org-mode . org-bullets-mode))
-
-(defun efs/org-mode-visual-fill ()
-  (setq visual-fill-column-width 120)
-  (setq visual-fill-column-center-text t)
-  (visual-fill-column-mode 1))
-
-(use-package visual-fill-column
-  :hook (org-mode . efs/org-mode-visual-fill))
-
 (use-package org-mime
+  :ensure t
   :hook (message-send-hook . org-mime-htmlize)
-  :defer t
   :config
   (setq org-mime-export-options '(:section-numbers nil :with-author nil :with-toc nil))
   (add-hook 'org-mime-html-hook
@@ -136,8 +122,9 @@
                              "#E6E1DC" "#232323")))))
 
 (defun my-org/setup-org-todo-keywords ()
-  (setq org-todo-keywords '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)" "CANCELLED(c)")))
-  (setq org-todo-keyword-faces '(("TODO" . (:foreground "red" :weight bold)) ("NEXT" . (:foreground "blue" :weight bold)))))
+  (setq org-todo-keywords '((sequence "TODO(t)" "NEXT(n)" "WAITING(w)" "|" "DONE(d)" "CANCELLED(c)")))
+  (setq org-todo-keyword-faces '(("TODO" . (:foreground "red" :weight bold)) ("NEXT" . (:foreground "blue" :weight bold))
+                                 ("DONE" . (:foreground "green" :weight bold)) ("WAITING" . (:foreground "yellow" :weight bold)))))
 
 (defun my-org/setup-capture-templates ()
   (setq org-capture-templates '(("t" "Todo [inbox]" entry
@@ -196,6 +183,25 @@
   (my-org/setup-org-todo-keywords)
   )
 
+(use-package evil-org
+  :hook (org-mode . efs/org-mode-setup)
+  :init
+  (setq org-ellipsis " ▾" org-hide-emphasis-markers t)
+  (efs/org-font-setup)
+  (gtd-setup))
+
+(use-package org-bullets
+  :after org
+  :hook (org-mode . org-bullets-mode))
+
+(defun efs/org-mode-visual-fill ()
+  (setq visual-fill-column-width 120)
+  (setq visual-fill-column-center-text t)
+  (visual-fill-column-mode 1))
+
+(use-package visual-fill-column
+  :hook (org-mode . efs/org-mode-visual-fill))
+
 ;; Automatically tangle our Emacs.org config file when we save it
 (defun efs/org-babel-tangle-config ()
   (when (string-equal (buffer-file-name)
@@ -206,11 +212,14 @@
 
 (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'efs/org-babel-tangle-config)))
 
+(use-package ob-typescript)
+
 (org-babel-do-load-languages
  'org-babel-load-languages
  '((emacs-lisp . t)
    (python . t)
    (C . t)
+   (typescript . t)
    ))
 (setq org-confirm-babel-evaluate nil)
 
@@ -219,6 +228,7 @@
 (add-to-list 'org-structure-template-alist '("sh" . "src bash"))
 (add-to-list 'org-structure-template-alist '("py" . "src python"))
 (add-to-list 'org-structure-template-alist '("el" . "src elisp"))
+(add-to-list 'org-structure-template-alist '("ts" . "src typescript"))
 (add-to-list 'org-structure-template-alist '("vi" . "src vimrc"))
 
 (use-package org-roam
@@ -245,6 +255,19 @@
   :config
   (require 'org-roam-dailies) ;; Ensure the keymap is available
   (org-roam-db-autosync-mode))
+
+(defun krofna-hack ()
+  (when (looking-back (rx "$ "))
+    (save-excursion
+      (backward-char 1)
+      (org-toggle-latex-fragment))))
+
+(add-hook 'org-mode-hook
+          (lambda ()
+            (org-cdlatex-mode)
+            (add-hook 'post-self-insert-hook #'krofna-hack 'append 'local)))
+
+(setq org-format-latex-options (plist-put org-format-latex-options :scale 2.0))
 
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
@@ -387,11 +410,22 @@
 (define-key message-mode-map
   (kbd "C-c o") 'org-mime-edit-mail-in-org-mode)
 
-(require 'mu4e)
-(my-mail-setup)
+(use-package mu4e
+:load-path "/usr/local/share/emacs/site-lisp/mu4e/"
+:ensure nil
+:config (my-mail-setup))
 
 (use-package emojify
   :hook (after-init . global-emojify-mode))
+
+(use-package mu4e-alert
+  :hook
+  ((after-init-hook . mu4e-alert-enable-notification)
+   (after-init-hook . mu4e-alert-enable-mode-line-display))
+  :config
+  (mu4e-alert-set-default-style 'libnotify))
+
+(use-package speed-type)
 
 (defun lsp-mode-setup ()
   (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
@@ -409,8 +443,7 @@
   :hook ((lsp-mode . lsp-ui-mode) (lsp-ui-mode . lsp-diagnostics-mode))
   :bind (:map lsp-mode-map ("K" . lsp-ui-doc-show))
   :custom
-  (lsp-ui-doc-position 'at-point)
-  (lsp-ui-sideline-show-diagnostics t))
+  (lsp-ui-doc-position 'at-point))
 
 (use-package lsp-treemacs
   :after lsp)
@@ -442,6 +475,14 @@
 
 (add-hook 'c++-mode-hook 'lsp-deferred)
 (add-hook 'c-mode-hook 'lsp-deferred)
+
+(use-package lsp-java
+  :hook (java-mode . lsp-deferred)
+  :bind ("M-RET" . lsp-execute-code-action))
+
+(use-package go-mode
+  :mode "\\.go\\'"
+  :hook (go-mode-hook . lsp-deferred))
 
 (use-package all-the-icons-dired
   :hook (dired-mode . all-the-icons-dired-mode))
