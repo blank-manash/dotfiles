@@ -12,10 +12,10 @@ startup_prompt() {
 startup() {
   echo "Welcome to BlankOS, This installtion script has been tested on Ubuntu 20.04, and is primarily developed for it."
   echo "You'd need a working installation of python3 (3.8.10), which comes by default in this distribution."
-  echo "BE WARNED: There exists no uninstalltion script for this software, proceed with caution."
+  echo "BE WARNED: There exists no uninstalltion script for this software and it comes with NO WARRANTY, proceed with caution."
 
   while true; do
-      read -rp "Do you wish to install this program? " yn
+    read -rp "Do you wish to install this program? (y/n) " yn
       case $yn in
           [Yy]* ) startup_prompt; break;;
           [Nn]* ) exit;;
@@ -26,16 +26,19 @@ startup() {
 
 startup
 ## Config files
-mkdir -p ~/.config/i3
-mkdir -p ~/.config/nvim
-mkdir -p ~/.vim
-mkdir -p ~/.local/bin
-mkdir -p ~/.local/lib
-mkdir -p ~/code
-mkdir -p ~/.emacs.d
-mkdir -p ~/.fonts/Dank\ Mono/
+create_directories() {
+  mkdir -p ~/.config/i3
+  mkdir -p ~/.config/nvim
+  mkdir -p ~/.vim
+  mkdir -p ~/.local/bin
+  mkdir -p ~/.local/lib
+  mkdir -p ~/code
+  mkdir -p ~/.emacs.d
+  mkdir -p ~/.fonts/Dank\ Mono/
+  export PATH="$PATH:$HOME/.local/bin"
+}
 
-export PATH="$PATH:$HOME/.local/bin"
+sudo apt install vifm neomutt cmus fonts-font-awesome curl -y
 
 install_fonts() {
   echo "Installing Fonts..."
@@ -48,13 +51,12 @@ install_fonts() {
 install_fonts
 
 ## Install Rust and Cargo
-curl https://sh.rustup.rs -sSf | sh
+rust_packages() {
+  curl https://sh.rustup.rs -sSf | sh
+  cargo install exa
+  cargo install zoxide --locked
+}
 
-## Terminal Packages
-cargo install exa
-cargo install zoxide --locked
-
-sudo apt install vifm neomutt cmus curl -y
 
 install_fzf() {
   echo "Installing FZF..."
@@ -79,7 +81,6 @@ install_neovide() {
   cd ~ && echo "Installation of Neovide Successful"
 }
 
-
 install_fuck() {
   sudo apt update
   sudo apt install -y python3-dev python3-pip python3-setuptools
@@ -102,23 +103,12 @@ install_vs_code() {
   sudo apt install code -y
 }
 
-install_fzf
-install_neovim
-install_fuck
-install_node
-install_vs_code
 
-sudo apt install -y fonts-font-awesome
-
-## Pip Programs
-pip3 install youtube-dl
-pip3 install tldr
-sudo pip3 install i3-workspace-names-daemon
-## i3-gaps
-sudo add-apt-repository ppa:regolith-linux/release
-sudo apt update
-sudo apt install -y i3-gaps i3blocks
-sudo npm install -g peerflix pkg
+pip_packages() {
+  pip3 install youtube-dl
+  pip3 install tldr
+  sudo pip3 install i3-workspace-names-daemon
+}
 
 ## Github Files
 install_raw_file() {
@@ -139,8 +129,6 @@ install_emacs() {
 }
 
 install_github_files() {
-
-
   VIM_TERMINAL_SETUP_URL="https://raw.githubusercontent.com/blank-manash/dotfiles/master/.vim/terminal-setup.vim"
   VIM_TERMINAL_SETUP_LOC="$HOME/.vim/terminal-setup.vim"
 
@@ -177,7 +165,10 @@ install_i3Blocks() {
   install_raw_file "$I3_BLOCKS" "$HOME/.config/i3blocks/config"
 }
 
-install_i3_config() {
+install_i3() {
+  sudo add-apt-repository ppa:regolith-linux/release
+  sudo apt update
+  sudo apt install -y i3-gaps i3blocks
   APP_ICONS_URL='https://raw.githubusercontent.com/blank-manash/dotfiles/master/.config/i3/app-icons.json'
   I3_CONFIG="https://raw.githubusercontent.com/blank-manash/dotfiles/master/.config/i3/config"
   I3_STATUS="https://raw.githubusercontent.com/blank-manash/dotfiles/master/.config/i3status/config"
@@ -187,6 +178,22 @@ install_i3_config() {
   install_i3Blocks
 }
 
+install_omb() {
+  bash -c "$(curl -fsSL https://raw.githubusercontent.com/ohmybash/oh-my-bash/master/tools/install.sh)"
+}
+
+create_directories
+install_i3
 install_emacs
+install_fonts
+install_fzf
+install_neovim
+install_fuck
+install_node
+install_vs_code
+install_cava
+install_omb
 install_github_files
 
+pip_packages
+rust_packages
