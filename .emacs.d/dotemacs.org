@@ -24,6 +24,13 @@ This does make my emacs look pretty.
   (global-display-line-numbers-mode t)
 #+end_src
 
+I also changed my scratch buffer mode
+
+#+begin_src elisp
+  (setq initial-major-mode 'org-mode)
+  (setq initial-scratch-message "*")
+#+end_src
+
 The Powerline of my choice
 
 * Package Configuration
@@ -346,11 +353,15 @@ Since =Emacs 28= already has a org mode, installing that one.
 *** Org Babel Configuration
 
 #+begin_src elisp
+
+  (use-package ob-typescript)
+  
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((emacs-lisp . t)
      (python . t)
      (C . t)
+     (typescript . t)
      ))
   (setq org-confirm-babel-evaluate nil)
 
@@ -359,6 +370,7 @@ Since =Emacs 28= already has a org mode, installing that one.
   (add-to-list 'org-structure-template-alist '("sh" . "src bash"))
   (add-to-list 'org-structure-template-alist '("py" . "src python"))
   (add-to-list 'org-structure-template-alist '("el" . "src elisp"))
+  (add-to-list 'org-structure-template-alist '("ts" . "src typescript"))
   (add-to-list 'org-structure-template-alist '("vi" . "src vimrc"))
 #+end_src
 
@@ -784,6 +796,14 @@ It is, having a company with LSP.
   (use-package lsp-java
     :hook (java-mode . lsp-deferred)
     :bind ("M-RET" . lsp-execute-code-action))
+#+end_src
+
+*** Go
+
+#+begin_src elisp
+  (use-package go-mode
+    :mode "\\.go\\'"
+    :hook (go-mode-hook . lsp-deferred))
 #+end_src
 * Dired
 
