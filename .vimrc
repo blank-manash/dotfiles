@@ -6,7 +6,7 @@ set nocompatible
 set cmdheight=1
 set cursorline
 set showcmd  "Shows You The typed Commands
-let &guifont='Dank Mono:h15' "Settings for Gvim
+let &guifont='Dank Mono:h11' "Settings for Gvim
 set number "Line numbers are cool
 set hlsearch "Highlight your search
 set ignorecase
@@ -17,8 +17,8 @@ set noerrorbells
 set background=dark
 set belloff=esc
 "Tab Settings
-set tabstop=4
-set softtabstop=4
+set tabstop=2
+set softtabstop=2
 set shiftwidth=4
 set expandtab
 "Helps Reading code
@@ -34,11 +34,68 @@ set path+=**
 set wildmenu
 set wildmode=longest:full,full
 "The window size for :terminal cmd
-set termwinsize=14*0
-let &t_SI = "\e[6 q"
-let &t_EI = "\e[2 q"
+if !has("nvim")
+    set termwinsize=14*0
+endif
+let &t_SI = "\e[3 q"
+let &t_EI = "\e[1 q"
 autocmd BufRead,BufNewFile *.md,*.txt setlocal wrap
 autocmd filetype markdown set spell
+
+if has("nvim")
+  " Terminal Function
+  set guicursor=n-v:block,i-ci-c:hor5
+  let g:term_buf = 0
+  let g:term_win = 0
+  function! TermToggle(height)
+      if win_gotoid(g:term_win)
+          hide
+      else
+          botright new
+          exec "resize " . a:height
+          try
+              exec "buffer " . g:term_buf
+          catch
+              call termopen($SHELL, {"detach": 0})
+              let g:term_buf = bufnr("")
+              set nonumber
+              set norelativenumber
+              set signcolumn=no
+          endtry
+          startinsert!
+          let g:term_win = win_getid() endif
+  endfunction
+
+" Toggle terminal on/off (neovim)
+  nnoremap <A-t> :call TermToggle(12)<CR>
+  inoremap <A-t> <Esc>:call TermToggle(12)<CR>
+  tnoremap <A-t> <C-\><C-n>:call TermToggle(12)<CR>
+
+  " Terminal go back to normal mode
+  tnoremap <Esc> <C-\><C-n>
+  tnoremap :q! <C-\><C-n>:q!<CR>
+endif
+
+colo jellybeans
+
+" Personal Mappings
+
+nnoremap <Leader>nt :NERDTreeToggle<CR>
+nnoremap <Leader>fi :Files<CR>
+nnoremap <Leader>mr :FZFMru<CR>
+nnoremap <F8> :Vista coc<CR>
+nnoremap <Leader>bu :Buffers<CR>
+nnoremap <Leader>pin :PlugInstall<CR>
+nnoremap <Leader>vrc :edit ~/.vimrc<CR>
+nnoremap <A-f> :Format<CR>
+nnoremap <A-b> :w <bar> %bd <bar> e# <bar> bd# <CR><CR>
+nnoremap ,sp "+p
+inoremap jk <Esc>
+nnoremap <Leader>ts :TestSuite<CR>
+nnoremap <Leader>tl :TestLast<CR>
+nnoremap <Leader>tt :TestNearest<CR>
+command! Sq :Startify
+let g:vimspector_enable_mappings = 'HUMAN'
 
 function! RefreshPlugins() abort
     mark V
@@ -51,15 +108,18 @@ function! RefreshPlugins() abort
     endif
 endfunction
 
-autocmd BufWritePost .vimrc call RefreshPlugins() | source $HOME/.vimrc 
+autocmd BufWritePost $HOME/.vimrc call RefreshPlugins() | source $HOME/.vimrc | mark V
 
 autocmd VimEnter * call RefreshPlugins()
 
 call plug#begin()
 Plug 'vim-airline/vim-airline'
+Plug 'bluz71/vim-moonfly-colors'
 Plug 'tpope/vim-dispatch'
+Plug 'puremourning/vimspector'
 Plug 'tpope/vim-fugitive'
 Plug 'vimwiki/vimwiki'
+Plug 'ctrlpvim/ctrlp.vim'
 Plug 'liuchengxu/vista.vim'
 Plug 'preservim/nerdtree'
 Plug 'itchyny/calendar.vim'
@@ -83,6 +143,7 @@ Plug 'vifm/vifm.vim'
 "Plug 'ludovicchabant/vim-gutentags' "Requires Uni/Ex Ctags
 "Plug 'liuchengxu/vim-which-key'
 Plug 'sheerun/vim-polyglot'
+Plug 'vim-test/vim-test'
 call plug#end()            " required
 
 let $FZF_DEFAULT_COMMAND = 'find .'
@@ -96,28 +157,14 @@ command! -bang -nargs=* Rg
 if !empty(glob('~/.vim/plugged/coc.nvim'))
   set nobackup
   set nowritebackup
-" Give more space for displaying messages.
   set cmdheight=1
-
-  " Having longer updatetime (default is 4000 ms = 4 s) leads to noticeable
-  " delays and poor user experience.
   set updatetime=300
-
-  " Don't pass messages to |ins-completion-menu|.
   set shortmess+=c
-
-  " Always show the signcolumn, otherwise it would shift the text each time
-  " diagnostics appear/become resolved.
   if has("nvim-0.5.0") || has("patch-8.1.1564")
-    " Recently vim can merge signcolumn and number column into one
     set signcolumn=number
   else
     set signcolumn=yes
   endif
-
-  " Use tab for trigger completion with characters ahead and navigate.
-  " NOTE: Use command ':verbose imap <tab>' to make sure tab is not mapped by
-  " other plugin before putting this into your config.
   inoremap <silent><expr> <TAB>
         \ pumvisible() ? "\<C-n>" :
         \ <SID>check_back_space() ? "\<TAB>" :
@@ -128,31 +175,23 @@ if !empty(glob('~/.vim/plugged/coc.nvim'))
     let col = col('.') - 1
     return !col || getline('.')[col - 1]  =~# '\s'
   endfunction
-
-  " Use <c-space> to trigger completion.
   if has('nvim')
     inoremap <silent><expr> <c-space> coc#refresh()
   else
     inoremap <silent><expr> <c-@> coc#refresh()
   endif
 
-  " Make <CR> auto-select the first completion item and notify coc.nvim to
-  " format on enter, <cr> could be remapped by other vim plugin
   inoremap <silent><expr> <cr> pumvisible() ? coc#_select_confirm()
                                 \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
 
-  " Use `[g` and `]g` to navigate diagnostics
-  " Use `:CocDiagnostics` to get all diagnostics of current buffer in location list.
   nmap <silent> [g <Plug>(coc-diagnostic-prev)
   nmap <silent> ]g <Plug>(coc-diagnostic-next)
 
-  " GoTo code navigation.
   nmap <silent> gd <Plug>(coc-definition)
   nmap <silent> gy <Plug>(coc-type-definition)
   nmap <silent> gi <Plug>(coc-implementation)
   nmap <silent> gr <Plug>(coc-references)
 
-  " Use K to show documentation in preview window.
   nnoremap <silent> K :call <SID>show_documentation()<CR>
 
   function! s:show_documentation()
@@ -163,19 +202,15 @@ if !empty(glob('~/.vim/plugged/coc.nvim'))
     endif
   endfunction
 
-  " Highlight the symbol and its references when holding the cursor.
   autocmd CursorHold * silent call CocActionAsync('highlight')
 
-  " Symbol renaming.
   nmap <leader>rn <Plug>(coc-rename)
 
-  " Formatting selected code.
   xmap <leader>f  <Plug>(coc-format-selected)
   nmap <leader>f  <Plug>(coc-format-selected)
 
   augroup mygroup autocmd! " Setup formatexpr specified filetype(s).
     autocmd FileType typescript,json setl formatexpr=CocAction('formatSelected')
-    " Update signature help on jump placeholder.
     autocmd User CocJumpPlaceholder call CocActionAsync('showSignatureHelp')
   augroup end
 
@@ -255,9 +290,11 @@ let g:vifm_embed_term = 1
 let g:vifm_embed_split = 1
 
 let g:header_field_author_email = 'mximpaid@gmail.com'
+let g:header_field_author = 'Manash Baul'
 let g:header_auto_add_header = 0
 let g:header_field_modified_timestamp = 0
 let g:header_field_modified_by = 0
+
 
 let g:medieval_langs = ['python=python3', 'ruby', 'sh', 'bash', 'javascript=node', 'vim=vim -s']
 
@@ -268,14 +305,4 @@ let g:dotoo#agenda#files = ['~/dotoo/*.dotoo']
 let g:vimwiki_list = [{'path': '~/vimwiki/', 'syntax': 'markdown', 'ext': '.md'}]
 let g:vimwiki_markdown_link_ext = 1
 let g:vimwiki_folding = 'expr'
-
-colo jellybeans
-nnoremap <Leader>nt :NERDTree<CR>
-nnoremap <Leader>fi :Files<CR>
-nnoremap <Leader>mr :FZFMru<CR>
-nnoremap <F8> :Vista coc<CR>
-nnoremap <Leader>bu :Buffers<CR>
-nnoremap <Leader>pin :PlugInstall<CR>
-nnoremap ,sp "+p
-inoremap jk <Esc>
-command! Sq :Startify
+let g:airline#extensions#tabline#enabled = 1
