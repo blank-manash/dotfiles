@@ -38,7 +38,7 @@ create_directories() {
   export PATH="$PATH:$HOME/.local/bin"
 }
 
-sudo apt install vifm neomutt cmus fonts-font-awesome curl -y
+sudo apt install vifm neomutt cmus fonts-font-awesome curl jq ripgrep fd-find -y
 
 install_fonts() {
   echo "Installing Fonts..."
