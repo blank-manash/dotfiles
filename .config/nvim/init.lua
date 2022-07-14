@@ -24,7 +24,12 @@ local function settings(vim)
   vim.opt.path = vim.opt.path + { '**' }
   vim.opt.wildmenu = true
   vim.g.termwinsize = 14 * 0
+  vim.opt.conceallevel = 2
+  vim.opt.concealcursor = 'nc'
   --vim.cmd('set wildmode=longest:full,full')
+  vim.cmd('set foldmethod=expr')
+  vim.cmd('set foldexpr=nvim_treesitter#foldexpr()')
+  --
   vim.cmd('color moonfly')
   vim.cmd('let &guifont="Dank Mono:h12"')
   vim.cmd('autocmd BufWritePost ~/.config/nvim/init.lua source %')
@@ -69,6 +74,7 @@ cocSetup()
 require('packer').startup(function(use)
   use { 'bluz71/vim-moonfly-colors',
     'wbthomason/packer.nvim',
+
     'tpope/vim-dispatch',
     'tpope/vim-fugitive',
     -- 'vimwiki/vimwiki',
@@ -97,9 +103,10 @@ require('packer').startup(function(use)
     'kkoomen/vim-doge',
     'shaeinst/roshnivim-cs',
     'nvim-orgmode/orgmode',
+    'lukas-reineke/headlines.nvim',
     -- Telescope Plugins
     'nvim-telescope/telescope-project.nvim',
-    'nvim-telescope/telescope-file-browser.nvim'
+    'nvim-telescope/telescope-file-browser.nvim',
   }
   use { 'nvim-telescope/telescope-fzf-native.nvim',
     run = 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build' }
@@ -134,12 +141,25 @@ end)
 
 local function treesitterSetup()
   require 'nvim-treesitter.configs'.setup {
-    ensure_installed = { "c", "lua", "rust", "typescript", "javascript" },
+    ensure_installed = { "c", "lua", "rust", "typescript", "javascript", "org", "norg" },
     sync_install = true,
     highlight = {
       enable = true,
     },
   }
+end
+
+local function orgModeSetup()
+  local org = require('orgmode')
+  org.setup_ts_grammar()
+
+  require('org-bullets').setup {
+    headlines = { "◉", "○", "✸", "✿" },
+  }
+  org.setup({
+    org_agenda_files = { '~/gtd/*', '~/notes/**/*' },
+    org_default_notes_file = '~/Dropbox/org/refile.org',
+  })
 end
 
 local function wilderSetup()
@@ -193,8 +213,9 @@ local function setups()
   require('lualine').setup {}
   require('nvim-tree').setup { sync_root_with_cwd = true, respect_buf_cwd = false, view = { adaptive_size = true } }
   telescopeSetup()
+  orgModeSetup()
+  treesitterSetup()
+  wilderSetup()
 end
 
-treesitterSetup()
-wilderSetup()
 setups()
