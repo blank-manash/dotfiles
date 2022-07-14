@@ -48,7 +48,6 @@ install_fonts() {
   install_raw_file "$DANK_MONO_REGULAR" "$HOME/.fonts/truetype/Dank\ Mono\ Regular.otf"
 }
 
-install_fonts
 
 ## Install Rust and Cargo
 rust_packages() {
@@ -182,12 +181,21 @@ install_omb() {
   bash -c "$(curl -fsSL https://raw.githubusercontent.com/ohmybash/oh-my-bash/master/tools/install.sh)"
 }
 
+install_Vifm() {
+  cd "$HOME/code" && git clone https://github.com/cirala/vifm_devicons.git
+  VIFMRC="https://raw.githubusercontent.com/blank-manash/dotfiles/master/.config/vifm/vifmrc"
+  VIFM_COLOR="https://raw.githubusercontent.com/blank-manash/dotfiles/master/.config/vifm/colors/gruvbox.vifm"
+  install_raw_file "$VIFMRC" "$HOME/.config/vifm/vifmrc"
+  install_raw_file "$VIFM_COLOR" "$HOME/.config/vifm/colors/gruvbox.vifm"
+}
+
 create_directories
 install_i3
 install_emacs
 install_fonts
 install_fzf
 install_neovim
+install_Vifm
 install_fuck
 install_node
 install_vs_code
