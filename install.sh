@@ -163,8 +163,8 @@ install_cava() {
 install_i3Blocks() {
   cd "$HOME/code" && git clone https://github.com/vivien/i3blocks
   cd i3blocks && ./autogen.sh && ./configure
-  make
-  make install
+  sudo make
+  sudo make install
   I3_BLOCKS="https://raw.githubusercontent.com/blank-manash/dotfiles/master/.config/i3blocks/config"
   install_raw_file "$I3_BLOCKS" "$HOME/.config/i3blocks/config"
 }
