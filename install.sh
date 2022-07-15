@@ -2,7 +2,7 @@
 
 startup_prompt() {
   sudo apt-get update -y && sudo apt-get upgrade -y
-  sudo apt install figlet git make cmake lolcat -y
+  sudo apt install figlet git make lolcat ninja-build gettext libtool libtool-bin autoconf automake cmake g++ pkg-config unzip curl doxygen -y
   curl https://sh.rustup.rs -sSf | sh
   printf "\n==============================================================================================================\n"
   /usr/bin/figlet "BlankOS" | /usr/games/lolcat
@@ -68,16 +68,15 @@ install_fzf() {
 
 install_neovim() {
   echo "===> Installing Neovim"
-  sudo apt-get install ninja-build gettext libtool libtool-bin autoconf automake cmake g++ pkg-config unzip curl doxygen -y
   cd ~/code && git clone https://github.com/neovim/neovim
   cd neovim && make CMAKE_BUILD_TYPE=RelWithDebInfo
   sudo make install
-  cd ~ || echo "Installation of Neovim Successful"
+  cd "$HOME"
 }
 
 install_neovide() {
   echo "===> Installing Neovide"
-  sudo apt install -y curl gnupg ca-certificates git gcc-multilib g++-multilib cmake libssl-dev pkg-config libfreetype6-dev libasound2-dev libexpat1-dev libxcb-composite0-dev libbz2-dev libsndio-dev freeglut3-dev libxmu-dev libxi-dev libfontconfig1-dev
+  sudo apt install -y gnupg ca-certificates git gcc-multilib g++-multilib libssl-dev pkg-config libfreetype6-dev libasound2-dev libexpat1-dev libxcb-composite0-dev libbz2-dev libsndio-dev freeglut3-dev libxmu-dev libxi-dev libfontconfig1-dev
   cd ~/code && git clone "https://github.com/neovide/neovide"
   cd neovide && cargo build release
   cp ./target/release/neovide ~/.local/bin/
