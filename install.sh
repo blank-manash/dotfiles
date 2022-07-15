@@ -3,10 +3,12 @@
 startup_prompt() {
   sudo apt-get update -y && sudo apt-get upgrade -y
   sudo apt install figlet git make lolcat ninja-build gettext libtool libtool-bin autoconf automake cmake g++ pkg-config unzip curl doxygen -y
-  curl https://sh.rustup.rs -sSf | sh
   printf "\n==============================================================================================================\n"
   /usr/bin/figlet "BlankOS" | /usr/games/lolcat
   printf "\n==============================================================================================================\n"
+
+  curl https://sh.rustup.rs -sSf | sh
+  export PATH="$PATH:$HOME/.cargo/bin/"
 }
 
 startup() {
@@ -94,7 +96,7 @@ install_node() {
   cd ~/code || exit
   curl -L https://raw.githubusercontent.com/tj/n/master/bin/n -o n
   bash n lts
-  npm install -g n
+  sudo npm install -g n
   cd "$HOME" || exit
 }
 
