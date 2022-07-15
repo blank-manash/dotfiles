@@ -125,6 +125,7 @@ install_emacs() {
   DOTEMACS="https://raw.githubusercontent.com/blank-manash/dotfiles/master/.emacs.d/dotemacs.org"
   install_raw_file "$EMACS_INIT" "$HOME/.emacs.d/init.el"
   install_raw_file "$DOTEMACS" "$HOME/.emacs.d/dotemacs.org"
+  emacs --daemon
 }
 
 install_github_files() {
