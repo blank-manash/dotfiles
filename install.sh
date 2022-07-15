@@ -1,18 +1,20 @@
 #!/bin/bash
 
 startup_prompt() {
-  sudo apt-get update -y && sudo apt-get upgrade
+  sudo apt-get update -y && sudo apt-get upgrade -y
   pip3 install figlet
-  sudo apt install lolcat -y
+  sudo apt install git lolcat -y
   printf "\n==============================================================================================================\n"
   figlet "BlankOS" | lolcat
   printf "\n==============================================================================================================\n"
 }
 
 startup() {
+  printf "\n=========================================\n"
   echo "Welcome to BlankOS, This installtion script has been tested on Ubuntu 20.04, and is primarily developed for it."
   echo "You'd need a working installation of python3 (3.8.10), which comes by default in this distribution."
   echo "BE WARNED: There exists no uninstalltion script for this software and it comes with NO WARRANTY, proceed with caution."
+  printf "\n=========================================\n"
 
   while true; do
     read -rp "Do you wish to install this program? (y/n) " yn
@@ -58,7 +60,9 @@ rust_packages() {
 
 
 install_fzf() {
+  echo ""
   echo "Installing FZF..."
+  echo ""
   git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
   ~/.fzf/install
 }
@@ -81,13 +85,13 @@ install_neovide() {
 }
 
 install_fuck() {
-  sudo apt update
+  sudo apt update -y
   sudo apt install -y python3-dev python3-pip python3-setuptools
   pip3 install thefuck --user
 }
 
 install_node() {
-  "Installing n: Version Manager with nodejs"
+  printf "\nInstalling n: Version Manager with nodejs....\n"
   cd ~/code || exit
   curl -L https://raw.githubusercontent.com/tj/n/master/bin/n -o n
   bash n lts
@@ -98,7 +102,7 @@ install_node() {
 install_vs_code() {
   sudo apt install software-properties-common apt-transport-https wget -y
   wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add -
-  sudo add-apt-repository "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"
+  sudo add-apt-repository -y "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"
   sudo apt install code -y
 }
 
@@ -111,20 +115,22 @@ pip_packages() {
 
 ## Github Files
 install_raw_file() {
-  "Installing File $2...."
+  printf "\nInstalling File %s....\n" "$2"
   rm -rf "$2"
-  curl "$1" --create-dirs --output "$2"
+  curl -fsSL "$1" --create-dirs --output "$2"
 }
 
 install_emacs() {
+  printf "\nInstalling Emacs28....\n"
   sudo apt remove --autoremove emacs emacs-common
-  sudo add-apt-repository ppa:kelleyk/emacs
+  sudo add-apt-repository -y ppa:kelleyk/emacs
   sudo apt update -y
   sudo apt install -y emacs28
   EMACS_INIT="https://raw.githubusercontent.com/blank-manash/dotfiles/master/.emacs.d/init.el"
   DOTEMACS="https://raw.githubusercontent.com/blank-manash/dotfiles/master/.emacs.d/dotemacs.org"
   install_raw_file "$EMACS_INIT" "$HOME/.emacs.d/init.el"
   install_raw_file "$DOTEMACS" "$HOME/.emacs.d/dotemacs.org"
+  emacs --daemon
 }
 
 install_github_files() {
@@ -165,7 +171,7 @@ install_i3Blocks() {
 }
 
 install_i3() {
-  sudo add-apt-repository ppa:regolith-linux/release
+  sudo add-apt-repository -y ppa:regolith-linux/release
   sudo apt update
   sudo apt install -y i3-gaps i3blocks
   APP_ICONS_URL='https://raw.githubusercontent.com/blank-manash/dotfiles/master/.config/i3/app-icons.json'
