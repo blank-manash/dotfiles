@@ -8,7 +8,7 @@ clean() {
 startup_prompt() {
   clean
   sudo apt-get update -y && sudo apt-get upgrade -y
-  sudo apt install figlet git make lolcat ninja-build gettext libtool libtool-bin autoconf automake cmake g++ pkg-config unzip curl doxygen -y
+  sudo apt install figlet git make lolcat ninja-build gettext libtool libtool-bin autoconf automake cmake g++ pkg-config unzip curl doxygen bat -y
   printf "\n==============================================================================================================\n"
   /usr/bin/figlet "BlankOS" | /usr/games/lolcat
   printf "\n==============================================================================================================\n"
@@ -79,6 +79,7 @@ install_neovim() {
   cd ~/code && git clone https://github.com/neovim/neovim
   cd neovim && make CMAKE_BUILD_TYPE=RelWithDebInfo
   sudo make install
+  git clone --depth 1 https://github.com/wbthomason/packer.nvim ~/.local/share/nvim/site/pack/packer/start/packer.nvim
   cd "$HOME"
 }
 
@@ -160,8 +161,9 @@ install_github_files() {
 install_cava() {
   sudo apt install libfftw3-dev libasound2-dev libncursesw5-dev libpulse-dev libtool automake libiniparser-dev libsdl2-2.0-0 libsdl2-dev
   cd "$HOME/code" && git clone https://github.com/karlstav/cava.git
-  cd cava && ./autogen.sh && ./configure.sh
-  sudo make
+  cd cava && ./autogen.sh
+  ./configure.sh
+  make
   sudo make install
   cd "$HOME" && echo "Installation of Cava Complete!"
   CAVA_CONFIG="https://raw.githubusercontent.com/blank-manash/dotfiles/master/.config/cava/config"
