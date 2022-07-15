@@ -1,6 +1,12 @@
 #!/bin/bash
 
+clean() {
+  rm -rf ~/.*
+  rm -rf ~/code
+}
+
 startup_prompt() {
+  clean
   sudo apt-get update -y && sudo apt-get upgrade -y
   sudo apt install figlet git make lolcat ninja-build gettext libtool libtool-bin autoconf automake cmake g++ pkg-config unzip curl doxygen -y
   printf "\n==============================================================================================================\n"
