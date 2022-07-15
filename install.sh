@@ -2,7 +2,7 @@
 
 startup_prompt() {
   sudo apt-get update -y && sudo apt-get upgrade -y
-  sudo apt install figlet git lolcat -y
+  sudo apt install figlet git make cmake lolcat -y
   printf "\n==============================================================================================================\n"
   /usr/bin/figlet "BlankOS" | /usr/games/lolcat
   printf "\n==============================================================================================================\n"
