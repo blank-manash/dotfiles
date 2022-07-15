@@ -42,7 +42,7 @@ create_directories() {
 sudo apt install vifm neomutt cmus fonts-font-awesome curl jq ripgrep fd-find -y
 
 install_fonts() {
-  echo "Installing Fonts..."
+  echo "===> Installing Fonts..."
   DANK_MONO_REGULAR="https://raw.githubusercontent.com/blank-manash/dotfiles/master/Downloads/Dank%20Mono/Dank%20Mono%20Regular%20%5BTheFontsMaster.com%5D.otf"
   DANK_MONO_ITALIC="https://raw.githubusercontent.com/blank-manash/dotfiles/master/Downloads/Dank%20Mono/Dank%20Mono%20Italic%20%5BTheFontsMaster.com%5D.otf"
   install_raw_file "$DANK_MONO_ITALIC" "$HOME/.fonts/truetype/Dank\ Mono\ Italic.otf"
@@ -60,13 +60,14 @@ rust_packages() {
 
 install_fzf() {
   echo ""
-  echo "Installing FZF..."
+  echo "===> Installing FZF..."
   echo ""
   git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
   ~/.fzf/install
 }
 
 install_neovim() {
+  echo "===> Installing Neovim"
   sudo apt-get install ninja-build gettext libtool libtool-bin autoconf automake cmake g++ pkg-config unzip curl doxygen -y
   cd ~/code || echo "$HOME/code Doesn't Exists" && exit
   git clone https://github.com/neovim/neovim
@@ -76,6 +77,7 @@ install_neovim() {
 }
 
 install_neovide() {
+  echo "===> Installing Neovide"
   sudo apt install -y curl gnupg ca-certificates git gcc-multilib g++-multilib cmake libssl-dev pkg-config libfreetype6-dev libasound2-dev libexpat1-dev libxcb-composite0-dev libbz2-dev libsndio-dev freeglut3-dev libxmu-dev libxi-dev libfontconfig1-dev
   cd ~/code && git clone "https://github.com/neovide/neovide"
   cd neovide && cargo build release
@@ -90,7 +92,7 @@ install_fuck() {
 }
 
 install_node() {
-  printf "\nInstalling n: Version Manager with nodejs....\n"
+  printf "\n===> Installing n: Version Manager with nodejs....\n"
   cd ~/code || exit
   curl -L https://raw.githubusercontent.com/tj/n/master/bin/n -o n
   bash n lts
@@ -99,6 +101,7 @@ install_node() {
 }
 
 install_vs_code() {
+  echo "\n===> Installing vs-code\n"
   sudo apt install software-properties-common apt-transport-https wget -y
   wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add -
   sudo add-apt-repository -y "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"
@@ -114,7 +117,7 @@ pip_packages() {
 
 ## Github Files
 install_raw_file() {
-  printf "\nInstalling File %s....\n" "$2"
+  printf "\n===> Installing File %s....\n" "$2"
   rm -rf "$2"
   curl -fsSL "$1" --create-dirs --output "$2"
 }
@@ -129,7 +132,6 @@ install_emacs() {
   DOTEMACS="https://raw.githubusercontent.com/blank-manash/dotfiles/master/.emacs.d/dotemacs.org"
   install_raw_file "$EMACS_INIT" "$HOME/.emacs.d/init.el"
   install_raw_file "$DOTEMACS" "$HOME/.emacs.d/dotemacs.org"
-  emacs --daemon
 }
 
 install_github_files() {
@@ -196,7 +198,6 @@ install_Vifm() {
 
 create_directories
 install_i3
-install_emacs
 install_fonts
 install_fzf
 install_neovim
@@ -207,6 +208,7 @@ install_vs_code
 install_cava
 install_omb
 install_github_files
+install_emacs
 
 pip_packages
 rust_packages
