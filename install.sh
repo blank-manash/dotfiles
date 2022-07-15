@@ -71,7 +71,7 @@ install_fzf() {
   echo "===> Installing FZF..."
   echo ""
   git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-  ~/.fzf/install
+  ~/.fzf/install --all
 }
 
 install_neovim() {
@@ -86,7 +86,7 @@ install_neovide() {
   echo "===> Installing Neovide"
   sudo apt install -y gnupg ca-certificates git gcc-multilib g++-multilib libssl-dev pkg-config libfreetype6-dev libasound2-dev libexpat1-dev libxcb-composite0-dev libbz2-dev libsndio-dev freeglut3-dev libxmu-dev libxi-dev libfontconfig1-dev
   cd ~/code && git clone "https://github.com/neovide/neovide"
-  cd neovide && cargo build release
+  cd neovide && cargo build --release
   cp ./target/release/neovide ~/.local/bin/
   cd ~ && echo "Installation of Neovide Successful"
 }
@@ -99,11 +99,11 @@ install_fuck() {
 
 install_node() {
   printf "\n===> Installing n: Version Manager with nodejs....\n"
-  cd ~/code || exit
+  cd ~/code
   curl -L https://raw.githubusercontent.com/tj/n/master/bin/n -o n
-  bash n lts
+  sudo bash n lts
   sudo npm install -g n
-  cd "$HOME" || exit
+  cd "$HOME"
 }
 
 install_vs_code() {
@@ -161,8 +161,8 @@ install_cava() {
   sudo apt install libfftw3-dev libasound2-dev libncursesw5-dev libpulse-dev libtool automake libiniparser-dev libsdl2-2.0-0 libsdl2-dev
   cd "$HOME/code" && git clone https://github.com/karlstav/cava.git
   cd cava && ./autogen.sh && ./configure.sh
-  make
-  make install
+  sudo make
+  sudo make install
   cd "$HOME" && echo "Installation of Cava Complete!"
   CAVA_CONFIG="https://raw.githubusercontent.com/blank-manash/dotfiles/master/.config/cava/config"
   install_raw_file "$CAVA_CONFIG" "$HOME/.config/cava/config"
@@ -213,9 +213,9 @@ install_fuck
 install_node
 install_vs_code
 install_cava
-install_omb
 install_github_files
 install_emacs
 
 pip_packages
 rust_packages
+install_omb
