@@ -3,6 +3,7 @@
 startup_prompt() {
   sudo apt-get update -y && sudo apt-get upgrade -y
   sudo apt install figlet git make cmake lolcat -y
+  curl https://sh.rustup.rs -sSf | sh
   printf "\n==============================================================================================================\n"
   /usr/bin/figlet "BlankOS" | /usr/games/lolcat
   printf "\n==============================================================================================================\n"
@@ -52,7 +53,6 @@ install_fonts() {
 
 ## Install Rust and Cargo
 rust_packages() {
-  curl https://sh.rustup.rs -sSf | sh
   cargo install exa
   cargo install zoxide --locked
 }
