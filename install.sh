@@ -213,9 +213,9 @@ install_fuck
 install_node
 install_vs_code
 install_cava
-install_github_files
 install_emacs
 
 pip_packages
 rust_packages
 install_omb
+install_github_files
