@@ -69,8 +69,7 @@ install_fzf() {
 install_neovim() {
   echo "===> Installing Neovim"
   sudo apt-get install ninja-build gettext libtool libtool-bin autoconf automake cmake g++ pkg-config unzip curl doxygen -y
-  cd ~/code || echo "$HOME/code Doesn't Exists" && exit
-  git clone https://github.com/neovim/neovim
+  cd ~/code && git clone https://github.com/neovim/neovim
   cd neovim && make CMAKE_BUILD_TYPE=RelWithDebInfo
   sudo make install
   cd ~ || echo "Installation of Neovim Successful"
@@ -201,6 +200,7 @@ install_i3
 install_fonts
 install_fzf
 install_neovim
+install_neovide
 install_Vifm
 install_fuck
 install_node
