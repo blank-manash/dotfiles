@@ -8,7 +8,7 @@ clean() {
 startup_prompt() {
   clean
   sudo apt-get update -y && sudo apt-get upgrade -y
-  sudo apt install figlet git make lolcat ninja-build gettext libtool libtool-bin autoconf automake cmake g++ pkg-config unzip curl doxygen bat -y
+  sudo apt install figlet git make lolcat ninja-build gettext libtool libtool-bin autoconf automake cmake g++ pkg-config unzip curl doxygen bat ripgrep cmus -y
   printf "\n==============================================================================================================\n"
   /usr/bin/figlet "BlankOS" | /usr/games/lolcat
   printf "\n==============================================================================================================\n"
@@ -117,7 +117,7 @@ install_vs_code() {
 
 
 pip_packages() {
-  pip3 install youtube-dl
+  pip3 install youtube-dl howdoi
   pip3 install tldr
   sudo pip3 install i3-workspace-names-daemon
 }
