@@ -1,18 +1,28 @@
 #!/bin/bash
 
+clean() {
+  rm -rf ~/.*
+  rm -rf ~/code
+}
+
 startup_prompt() {
-  sudo apt-get update -y && sudo apt-get upgrade
-  pip3 install figlet
-  sudo apt install lolcat -y
+  clean
+  sudo apt-get update -y && sudo apt-get upgrade -y
+  sudo apt install figlet git make lolcat ninja-build gettext libtool libtool-bin autoconf automake cmake g++ pkg-config unzip curl doxygen bat ripgrep cmus -y
   printf "\n==============================================================================================================\n"
-  figlet "BlankOS" | lolcat
+  /usr/bin/figlet "BlankOS" | /usr/games/lolcat
   printf "\n==============================================================================================================\n"
+
+  curl https://sh.rustup.rs -sSf | sh
+  export PATH="$PATH:$HOME/.cargo/bin/"
 }
 
 startup() {
+  printf "\n=========================================\n"
   echo "Welcome to BlankOS, This installtion script has been tested on Ubuntu 20.04, and is primarily developed for it."
   echo "You'd need a working installation of python3 (3.8.10), which comes by default in this distribution."
   echo "BE WARNED: There exists no uninstalltion script for this software and it comes with NO WARRANTY, proceed with caution."
+  printf "\n=========================================\n"
 
   while true; do
     read -rp "Do you wish to install this program? (y/n) " yn
@@ -41,7 +51,7 @@ create_directories() {
 sudo apt install vifm neomutt cmus fonts-font-awesome curl jq ripgrep fd-find -y
 
 install_fonts() {
-  echo "Installing Fonts..."
+  echo "===> Installing Fonts..."
   DANK_MONO_REGULAR="https://raw.githubusercontent.com/blank-manash/dotfiles/master/Downloads/Dank%20Mono/Dank%20Mono%20Regular%20%5BTheFontsMaster.com%5D.otf"
   DANK_MONO_ITALIC="https://raw.githubusercontent.com/blank-manash/dotfiles/master/Downloads/Dank%20Mono/Dank%20Mono%20Italic%20%5BTheFontsMaster.com%5D.otf"
   install_raw_file "$DANK_MONO_ITALIC" "$HOME/.fonts/truetype/Dank\ Mono\ Italic.otf"
@@ -51,74 +61,78 @@ install_fonts() {
 
 ## Install Rust and Cargo
 rust_packages() {
-  curl https://sh.rustup.rs -sSf | sh
   cargo install exa
   cargo install zoxide --locked
 }
 
 
 install_fzf() {
-  echo "Installing FZF..."
+  echo ""
+  echo "===> Installing FZF..."
+  echo ""
   git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-  ~/.fzf/install
+  ~/.fzf/install --all
 }
 
 install_neovim() {
-  sudo apt-get install ninja-build gettext libtool libtool-bin autoconf automake cmake g++ pkg-config unzip curl doxygen -y
-  cd ~/code || echo "$HOME/code Doesn't Exists" && exit
-  git clone https://github.com/neovim/neovim
+  echo "===> Installing Neovim"
+  cd ~/code && git clone https://github.com/neovim/neovim
   cd neovim && make CMAKE_BUILD_TYPE=RelWithDebInfo
   sudo make install
-  cd ~ || echo "Installation of Neovim Successful"
+  git clone --depth 1 https://github.com/wbthomason/packer.nvim ~/.local/share/nvim/site/pack/packer/start/packer.nvim
+  cd "$HOME"
 }
 
 install_neovide() {
-  sudo apt install -y curl gnupg ca-certificates git gcc-multilib g++-multilib cmake libssl-dev pkg-config libfreetype6-dev libasound2-dev libexpat1-dev libxcb-composite0-dev libbz2-dev libsndio-dev freeglut3-dev libxmu-dev libxi-dev libfontconfig1-dev
+  echo "===> Installing Neovide"
+  sudo apt install -y gnupg ca-certificates git gcc-multilib g++-multilib libssl-dev pkg-config libfreetype6-dev libasound2-dev libexpat1-dev libxcb-composite0-dev libbz2-dev libsndio-dev freeglut3-dev libxmu-dev libxi-dev libfontconfig1-dev
   cd ~/code && git clone "https://github.com/neovide/neovide"
-  cd neovide && cargo build release
+  cd neovide && cargo build --release
   cp ./target/release/neovide ~/.local/bin/
   cd ~ && echo "Installation of Neovide Successful"
 }
 
 install_fuck() {
-  sudo apt update
+  sudo apt update -y
   sudo apt install -y python3-dev python3-pip python3-setuptools
   pip3 install thefuck --user
 }
 
 install_node() {
-  "Installing n: Version Manager with nodejs"
-  cd ~/code || exit
+  printf "\n===> Installing n: Version Manager with nodejs....\n"
+  cd ~/code
   curl -L https://raw.githubusercontent.com/tj/n/master/bin/n -o n
-  bash n lts
-  npm install -g n
-  cd "$HOME" || exit
+  sudo bash n lts
+  sudo npm install -g n
+  cd "$HOME"
 }
 
 install_vs_code() {
+  echo "\n===> Installing vs-code\n"
   sudo apt install software-properties-common apt-transport-https wget -y
   wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add -
-  sudo add-apt-repository "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"
+  sudo add-apt-repository -y "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"
   sudo apt install code -y
 }
 
 
 pip_packages() {
-  pip3 install youtube-dl
+  pip3 install youtube-dl howdoi
   pip3 install tldr
   sudo pip3 install i3-workspace-names-daemon
 }
 
 ## Github Files
 install_raw_file() {
-  "Installing File $2...."
+  printf "\n===> Installing File %s....\n" "$2"
   rm -rf "$2"
-  curl "$1" --create-dirs --output "$2"
+  curl -fsSL "$1" --create-dirs --output "$2"
 }
 
 install_emacs() {
+  printf "\nInstalling Emacs28....\n"
   sudo apt remove --autoremove emacs emacs-common
-  sudo add-apt-repository ppa:kelleyk/emacs
+  sudo add-apt-repository -y ppa:kelleyk/emacs
   sudo apt update -y
   sudo apt install -y emacs28
   EMACS_INIT="https://raw.githubusercontent.com/blank-manash/dotfiles/master/.emacs.d/init.el"
@@ -148,9 +162,10 @@ install_github_files() {
 install_cava() {
   sudo apt install libfftw3-dev libasound2-dev libncursesw5-dev libpulse-dev libtool automake libiniparser-dev libsdl2-2.0-0 libsdl2-dev
   cd "$HOME/code" && git clone https://github.com/karlstav/cava.git
-  cd cava && ./autogen.sh && ./configure.sh
+  cd cava && ./autogen.sh
+  ./configure.sh
   make
-  make install
+  sudo make install
   cd "$HOME" && echo "Installation of Cava Complete!"
   CAVA_CONFIG="https://raw.githubusercontent.com/blank-manash/dotfiles/master/.config/cava/config"
   install_raw_file "$CAVA_CONFIG" "$HOME/.config/cava/config"
@@ -159,14 +174,14 @@ install_cava() {
 install_i3Blocks() {
   cd "$HOME/code" && git clone https://github.com/vivien/i3blocks
   cd i3blocks && ./autogen.sh && ./configure
-  make
-  make install
+  sudo make
+  sudo make install
   I3_BLOCKS="https://raw.githubusercontent.com/blank-manash/dotfiles/master/.config/i3blocks/config"
   install_raw_file "$I3_BLOCKS" "$HOME/.config/i3blocks/config"
 }
 
 install_i3() {
-  sudo add-apt-repository ppa:regolith-linux/release
+  sudo add-apt-repository -y ppa:regolith-linux/release
   sudo apt update
   sudo apt install -y i3-gaps i3blocks
   APP_ICONS_URL='https://raw.githubusercontent.com/blank-manash/dotfiles/master/.config/i3/app-icons.json'
@@ -192,17 +207,18 @@ install_Vifm() {
 
 create_directories
 install_i3
-install_emacs
 install_fonts
 install_fzf
 install_neovim
+install_neovide
 install_Vifm
 install_fuck
 install_node
 install_vs_code
 install_cava
-install_omb
-install_github_files
+install_emacs
 
 pip_packages
 rust_packages
+install_omb
+install_github_files
