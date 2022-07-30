@@ -7,8 +7,9 @@ clean() {
 
 startup_prompt() {
   clean
+  echo 'deb [trusted=yes] https://repo.charm.sh/apt/ * *' | sudo tee /etc/apt/sources.list.d/charm.list
   sudo apt-get update -y && sudo apt-get upgrade -y
-  sudo apt install figlet git make lolcat ninja-build gettext libtool libtool-bin autoconf automake cmake g++ pkg-config unzip curl doxygen bat ripgrep cmus -y
+  sudo apt install gum figlet git make lolcat ninja-build gettext libtool libtool-bin autoconf automake cmake g++ pkg-config unzip curl doxygen bat ripgrep cmus -y
   printf "\n==============================================================================================================\n"
   /usr/bin/figlet "BlankOS" | /usr/games/lolcat
   printf "\n==============================================================================================================\n"
@@ -24,14 +25,7 @@ startup() {
   echo "BE WARNED: There exists no uninstalltion script for this software and it comes with NO WARRANTY, proceed with caution."
   printf "\n=========================================\n"
 
-  while true; do
-    read -rp "Do you wish to install this program? (y/n) " yn
-      case $yn in
-          [Yy]* ) startup_prompt; break;;
-          [Nn]* ) exit;;
-          * ) echo "Please answer yes or no.";;
-      esac
-  done
+  gum confirm "Do you wish to install this program" && startup_prompt
 }
 
 startup
@@ -51,7 +45,6 @@ create_directories() {
 sudo apt install vifm neomutt cmus fonts-font-awesome curl jq ripgrep fd-find -y
 
 install_fonts() {
-  echo "===> Installing Fonts..."
   DANK_MONO_REGULAR="https://raw.githubusercontent.com/blank-manash/dotfiles/master/Downloads/Dank%20Mono/Dank%20Mono%20Regular%20%5BTheFontsMaster.com%5D.otf"
   DANK_MONO_ITALIC="https://raw.githubusercontent.com/blank-manash/dotfiles/master/Downloads/Dank%20Mono/Dank%20Mono%20Italic%20%5BTheFontsMaster.com%5D.otf"
   install_raw_file "$DANK_MONO_ITALIC" "$HOME/.fonts/truetype/Dank\ Mono\ Italic.otf"
@@ -99,7 +92,6 @@ install_fuck() {
 }
 
 install_node() {
-  printf "\n===> Installing n: Version Manager with nodejs....\n"
   cd ~/code
   curl -L https://raw.githubusercontent.com/tj/n/master/bin/n -o n
   sudo bash n lts
@@ -108,7 +100,6 @@ install_node() {
 }
 
 install_vs_code() {
-  echo "\n===> Installing vs-code\n"
   sudo apt install software-properties-common apt-transport-https wget -y
   wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add -
   sudo add-apt-repository -y "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"
@@ -130,7 +121,6 @@ install_raw_file() {
 }
 
 install_emacs() {
-  printf "\nInstalling Emacs28....\n"
   sudo apt remove --autoremove emacs emacs-common
   sudo add-apt-repository -y ppa:kelleyk/emacs
   sudo apt update -y
@@ -206,19 +196,19 @@ install_Vifm() {
 }
 
 create_directories
-install_i3
-install_fonts
-install_fzf
-install_neovim
-install_neovide
-install_Vifm
-install_fuck
-install_node
-install_vs_code
-install_cava
-install_emacs
+gum spin --spinner dot --title "Installing i3 window manager" -- install_i3
+gum spin --spinner dot --title "Instaling Fonts..." -- install_fonts
+gum spin --spinner dot --title "Installing fzf..." -- install_fzf
+gum spin --spinner dot --title "Installing Neovim..." -- install_neovim
+gum spin --spinner dot --title "Installing Neovide..." -- install_neovide
+gum spin --spinner dot --title "Installing Vifm..." -- install_Vifm
+gum spin --spinner dot --title "Installing thefuck..." -- install_fuck
+gum spin --spinner dot --title "Installing NodeJS..." -- install_node
+gum spin --spinner dot --title "Installing vs_code..." -- install_vs_code
+gum spin --spinner dot --title "Installing cava..." -- install_cava
+gum spin --spinner dot --title "Installing emacs..." -- install_emacs
 
-pip_packages
-rust_packages
-install_omb
-install_github_files
+gum spin --spinner dot --title "Installing Python Packages..." -- pip_packages
+gum spin --spinner dot --title "Installing Rust Packages..." -- rust_packages
+gum spin --spinner dot --title "Installing Oh My Bash..." -- install_omb
+gum spin --spinner dot --title "Installing Github Configuration Dotfiles..." -- install_github_files
