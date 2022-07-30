@@ -7,7 +7,6 @@ clean() {
 
 startup_prompt() {
   clean
-  echo 'deb [trusted=yes] https://repo.charm.sh/apt/ * *' | sudo tee /etc/apt/sources.list.d/charm.list
   sudo apt-get update -y && sudo apt-get upgrade -y
   sudo apt install gum figlet git make lolcat ninja-build gettext libtool libtool-bin autoconf automake cmake g++ pkg-config unzip curl doxygen bat ripgrep cmus -y
   printf "\n==================================================================\n"
@@ -25,6 +24,8 @@ startup() {
   echo "BE WARNED: There exists no uninstalltion script for this software and it comes with NO WARRANTY, proceed with caution."
   printf "\n=========================================\n"
 
+  echo 'deb [trusted=yes] https://repo.charm.sh/apt/ * *' | sudo tee /etc/apt/sources.list.d/charm.list
+  sudo apt-get update -y && sudo apt install gum
   gum confirm "Do you wish to install this program" && startup_prompt
 }
 
