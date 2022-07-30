@@ -10,9 +10,9 @@ startup_prompt() {
   echo 'deb [trusted=yes] https://repo.charm.sh/apt/ * *' | sudo tee /etc/apt/sources.list.d/charm.list
   sudo apt-get update -y && sudo apt-get upgrade -y
   sudo apt install gum figlet git make lolcat ninja-build gettext libtool libtool-bin autoconf automake cmake g++ pkg-config unzip curl doxygen bat ripgrep cmus -y
-  printf "\n==============================================================================================================\n"
+  printf "\n==================================================================\n"
   /usr/bin/figlet "BlankOS" | /usr/games/lolcat
-  printf "\n==============================================================================================================\n"
+  printf "\n==================================================================\n"
 
   curl https://sh.rustup.rs -sSf | sh
   export PATH="$PATH:$HOME/.cargo/bin/"
