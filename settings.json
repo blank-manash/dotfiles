@@ -33,6 +33,10 @@
             "commands": ["open-buffers.openBuffer"]
         },
         {
+            "before": ["<leader>", "f", "r"],
+            "commands": ["workbench.action.openRecent"]
+        },
+        {
             "before": ["<leader>", "n", "t"],
             "commands": ["workbench.view.explorer"]
         },
