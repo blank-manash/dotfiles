@@ -77,7 +77,7 @@
     "vim.cursorStylePerMode.insert": "underline",
     "vim.cursorStylePerMode.normal": "block",
     "vim.cursorStylePerMode.visual": "block-outline",
-    "editor.fontFamily": "Dank Mono",
+    "editor.fontFamily": "InconsolataGo Nerd Font Mono",
     "editor.fontSize": 15,
     "editor.cursorSmoothCaretAnimation": "on",
     "editor.smoothScrolling": true,
