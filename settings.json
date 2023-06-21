@@ -1,0 +1,85 @@
+{
+    "C_Cpp.default.compilerPath": "/usr/bin/clang",
+    "window.zoomLevel": 1,
+    "git.enableSmartCommit": true,
+    "workbench.colorTheme": "One Darker Pro",
+    "vim.leader": ",",
+    "vim.insertModeKeyBindings": [
+        {
+            "before": [
+                "j",
+                "k"
+            ],
+            "after": [
+                "<esc>"
+            ]
+        }
+    ],
+    "vim.normalModeKeyBindingsNonRecursive": [
+        {
+            "before": ["<leader>", "f", "f"],
+            "commands": ["workbench.action.quickOpen"]
+        },
+        {
+            "before": ["<leader>", "f", "s"],
+            "commands": ["workbench.action.gotoSymbol"]
+        },
+        {
+            "before": ["<leader>", "f", "g"],
+            "commands": ["workbench.action.findInFiles"]
+        },
+        {
+            "before": ["<leader>", "f", "b"],
+            "commands": ["open-buffers.openBuffer"]
+        },
+        {
+            "before": ["<leader>", "n", "t"],
+            "commands": ["workbench.view.explorer"]
+        },
+        {
+            "before": ["<C-q>"],
+            "commands": ["workbench.files.action.showActiveFileInExplorer"]
+        },
+        {
+            "before": ["g", "e"],
+            "commands": ["editor.action.marker.next"]
+        },
+        {
+            "before": ["g", "E"],
+            "commands": ["editor.action.marker.prev"]
+        },
+        {
+            "before": ["g", "i"],
+            "commands": ["editor.action.goToImplementation"]
+        },
+        {
+            "before": ["g", "d"],
+            "commands": ["editor.action.revealDefinition"]
+        },
+        {
+            "before": ["g", "r"],
+            "commands": ["editor.action.goToReferences"]
+        },
+        {
+            "before": ["g", "b"],
+            "commands": ["workbench.action.navigateBack"]
+        },
+        {
+            "before": ["g", "f"],
+            "commands": ["workbench.action.navigateForward"]
+        }
+    ],
+    "workbench.editor.enablePreview": false,
+    "workbench.editor.enablePreviewFromQuickOpen": false,
+    "editor.cursorStyle": "underline",
+    "window.menuBarVisibility": "compact",
+    "explorer.autoReveal": false,
+    "vim.cursorStylePerMode.insert": "underline",
+    "vim.cursorStylePerMode.normal": "block",
+    "vim.cursorStylePerMode.visual": "block-outline",
+    "editor.fontFamily": "Dank Mono",
+    "editor.fontSize": 15,
+    "editor.cursorSmoothCaretAnimation": "on",
+    "editor.smoothScrolling": true,
+    "workbench.list.smoothScrolling": true
+}
