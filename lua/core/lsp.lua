@@ -12,7 +12,7 @@ require("mason-lspconfig").setup({
 local lspconfig = require("lspconfig")
 
 -- Attach LSP keybindings
-local on_attach = function(_, bufnr)
+local on_attach = function(client, bufnr)
   local buf_map = vim.api.nvim_buf_set_keymap
   local opts = { noremap = true, silent = true }
 
@@ -23,6 +23,19 @@ local on_attach = function(_, bufnr)
   buf_map(bufnr, "n", "<leader>ca", "<cmd>lua vim.lsp.buf.code_action()<CR>", opts)
   buf_map(bufnr, "n", "gr", "<cmd>lua vim.lsp.buf.references()<CR>", opts)
   buf_map(bufnr, "n", "<leader>f", "<cmd>lua vim.lsp.buf.format({ async = true })<CR>", opts)
+  -- Navigate to Error
+  buf_map(bufnr, "n", "ge", "<cmd>lua vim.diagnostic.goto_next()<CR>", opts)
+  buf_map(bufnr, "n", "gE", "<cmd>lua vim.diagnostic.goto_prev()<CR>", opts)
+
+  -- Autoformat on save
+  if client.server_capabilities.documentFormattingProvider then
+    vim.api.nvim_create_autocmd("BufWritePre", {
+      buffer = bufnr,
+      callback = function()
+        vim.lsp.buf.format({ async = false }) -- Format before saving
+      end,
+    })
+  end
 end
 
 -- LSP servers

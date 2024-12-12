@@ -1,7 +1,11 @@
 require("lazy").setup({
   spec = {
-    { "catppuccin/nvim",         name = "catppuccin",                          priority = 1000 },
-    { 'akinsho/bufferline.nvim', dependencies = 'nvim-tree/nvim-web-devicons', opts = {} },
+    { "catppuccin/nvim", name = "catppuccin", priority = 1000 },
+    {
+      'akinsho/bufferline.nvim',
+      dependencies = 'nvim-tree/nvim-web-devicons',
+      opts = {}
+    },
     { 'dracula/vim' },
     {
       "folke/noice.nvim",
